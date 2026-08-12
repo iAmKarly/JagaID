@@ -1,0 +1,202 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ── Job 1: Unit + Integration Tests ───────────────────────────────────────
+  test:
+    name: Unit & Integration Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Unit + Integration tests with coverage
+        run: npm run test:coverage
+        env:
+          # Clear both flags so db.ts always uses SEED_DB — no DB connection needed
+          USE_SUPABASE: "false"
+          NEXT_PUBLIC_USE_SUPABASE: "false"
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 7
+
+  # ── Job 2: E2E Tests — seed-fallback (no Supabase needed) ─────────────────
+  e2e:
+    name: E2E Tests (seed-fallback)
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      - name: Build app (seed-fallback mode)
+        run: npm run build
+        env:
+          USE_SUPABASE: "false"
+          NEXT_PUBLIC_USE_SUPABASE: "false"
+          # Dummy values satisfy Next.js NEXT_PUBLIC_ references at build time
+          # App will NOT connect to these — USE_SUPABASE=false prevents it
+          NEXT_PUBLIC_SUPABASE_URL: "https://placeholder.supabase.co"
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: "placeholder-anon-key"
+          ADMIN_UPLOAD_KEY: "ci-placeholder-key"
+
+      - name: Run E2E tests (seed-fallback)
+        run: npm run test:e2e
+        env:
+          USE_SUPABASE: "false"
+          NEXT_PUBLIC_USE_SUPABASE: "false"
+          PLAYWRIGHT_BASE_URL: "http://localhost:3000"
+          # E2E_SEED_KEY is optional here — /api/e2e-seed is a no-op in seed-fallback
+          E2E_SEED_KEY: ${{ secrets.E2E_SEED_KEY }}
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-seed
+          path: playwright-report/
+          retention-days: 7
+
+  # TODO:
+  # ── Job 3: E2E Tests — real Supabase (main branch only, opt-in) ───────────
+  #
+  # To enable:
+  #   GitHub → Settings → Variables → Actions → New:
+  #     RUN_E2E_SUPABASE = true
+  #
+  # Required secrets (Settings → Secrets → Actions):
+  #   TEST_SUPABASE_URL              jagaid-test project URL
+  #   TEST_SUPABASE_ANON_KEY         jagaid-test anon key
+  #   TEST_SUPABASE_SERVICE_ROLE_KEY jagaid-test service role key
+  #   E2E_SEED_KEY                   same value as in .env.test
+  #   ADMIN_UPLOAD_KEY               same value as in .env.test
+  #
+  # Note: TEST_* variables point to the jagaid-TEST project, not production.
+  #       Variable names are the same as .env.local — values must be different.
+  e2e-supabase:
+    name: E2E Tests (Supabase)
+    runs-on: ubuntu-latest
+    needs: test
+    if: >
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      vars.RUN_E2E_SUPABASE == 'true'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      - name: Install wait-on
+        run: npm install -g wait-on
+
+      - name: Build app against test Supabase
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.TEST_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.TEST_SUPABASE_ANON_KEY }}
+          USE_SUPABASE: "true"
+          NEXT_PUBLIC_USE_SUPABASE: "true"
+          ADMIN_UPLOAD_KEY: ${{ secrets.ADMIN_UPLOAD_KEY }}
+
+      - name: Start server, seed fixtures, run E2E tests
+        run: |
+          # Start dev server — inherits ALL env vars set below
+          npm run dev &
+          DEV_PID=$!
+
+          # Wait for server to be ready
+          wait-on http://localhost:3000/api/stats --timeout 30000
+          echo "Server ready — seeding test fixtures..."
+
+          # Clean previous e2e fixtures (safe even if nothing exists)
+          curl -sf -X DELETE             "http://localhost:3000/api/e2e-seed?key=${E2E_SEED_KEY}"             -H "Content-Type: application/json" || true
+
+          # Seed fresh test fixtures
+          SEED_RESULT=$(curl -sf -X POST             "http://localhost:3000/api/e2e-seed?key=${E2E_SEED_KEY}"             -H "Content-Type: application/json")
+          echo "Seed result: $SEED_RESULT"
+
+          if ! echo "$SEED_RESULT" | grep -q '"ok":true'; then
+            echo "ERROR: Seed failed"
+            kill $DEV_PID 2>/dev/null || true
+            exit 1
+          fi
+
+          # Run Playwright — REUSE_SERVER=true means it uses our running server
+          # workers=1 prevents concurrent writes to shared test DB
+          REUSE_SERVER=true \
+            node node_modules/@playwright/test/cli.js test --workers=1 --headed
+          E2E_EXIT=$?
+
+          kill $DEV_PID 2>/dev/null || true
+          exit $E2E_EXIT
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.TEST_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.TEST_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.TEST_SUPABASE_SERVICE_ROLE_KEY }}
+          USE_SUPABASE: "true"
+          NEXT_PUBLIC_USE_SUPABASE: "true"
+          E2E_SEED_KEY: ${{ secrets.E2E_SEED_KEY }}
+          ADMIN_UPLOAD_KEY: ${{ secrets.ADMIN_UPLOAD_KEY }}
+          PLAYWRIGHT_BASE_URL: "http://localhost:3000"
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-supabase
+          path: playwright-report/
+          retention-days: 7

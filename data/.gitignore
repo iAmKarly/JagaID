@@ -1,0 +1,5 @@
+# Scraped data may contain PII — never commit
+ojk-scraped.json
+
+# Keep manual.csv as a template but exclude any real data files
+# real-*.csv
