@@ -21,16 +21,16 @@ JagaID is a community-powered fraud intelligence platform for Indonesia. Anyone 
 
 ## Tech stack
 
-| Layer | Choice |
-|---|---|
-| Framework | Next.js 14 (App Router) |
-| Language | TypeScript |
-| Database | Supabase (PostgreSQL) |
-| Validation | Zod |
+| Layer                  | Choice                     |
+| ---------------------- | -------------------------- |
+| Framework              | Next.js 14 (App Router)    |
+| Language               | TypeScript                 |
+| Database               | Supabase (PostgreSQL)      |
+| Validation             | Zod                        |
 | Unit/Integration tests | Jest + ts-jest (170 tests) |
-| E2E tests | Playwright (30 tests) |
-| CI | GitHub Actions |
-| Deployment | Vercel |
+| E2E tests              | Playwright (30 tests)      |
+| CI                     | GitHub Actions             |
+| Deployment             | Vercel                     |
 
 **Cost to run: $0** (within free tier limits on both Vercel and Supabase)
 
@@ -84,17 +84,17 @@ Open [http://localhost:3000](http://localhost:3000).
 
 Copy `.env.example` to `.env.local` and fill in:
 
-| Variable | Required | Description |
-|---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Yes (prod) | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes (prod) | Public key — accepts legacy `anon` JWT or new `sb_publishable_*` opaque token |
-| `SUPABASE_SERVICE_ROLE_KEY` | Yes (prod) | Server-only — accepts legacy `service_role` JWT or new `sb_secret_*` opaque token. After migration 002, this is the **only** key allowed to write |
-| `NEXT_PUBLIC_USE_SUPABASE` | Yes (prod) | Set `true` to use live DB — leave `false` for dev |
-| `USE_SUPABASE` | E2E only | Server-only runtime switch — set `true` in `.env.test` |
-| `ADMIN_UPLOAD_KEY` | Yes (prod) | Secret for `/admin/upload` and `/api/admin/*` (sent via `x-admin-key` header) |
-| `E2E_SEED_KEY` | E2E only | Used by e2e tests to seed fixtures (sent via `x-e2e-key` header) |
-| `ALLOWED_ORIGIN` | Optional | Production CORS origin (e.g. `https://jagaid.app`). Unset = same-origin only |
-| `NEXT_PUBLIC_APP_URL` | Optional | Origin used in WhatsApp share text fallback when `window.location.origin` isn't available |
+| Variable                        | Required   | Description                                                                                                                                       |
+| ------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Yes (prod) | Supabase project URL                                                                                                                              |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes (prod) | Public key — accepts legacy `anon` JWT or new `sb_publishable_*` opaque token                                                                     |
+| `SUPABASE_SERVICE_ROLE_KEY`     | Yes (prod) | Server-only — accepts legacy `service_role` JWT or new `sb_secret_*` opaque token. After migration 002, this is the **only** key allowed to write |
+| `NEXT_PUBLIC_USE_SUPABASE`      | Yes (prod) | Set `true` to use live DB — leave `false` for dev                                                                                                 |
+| `USE_SUPABASE`                  | E2E only   | Server-only runtime switch — set `true` in `.env.test`                                                                                            |
+| `ADMIN_UPLOAD_KEY`              | Yes (prod) | Secret for `/admin/upload` and `/api/admin/*` (sent via `x-admin-key` header)                                                                     |
+| `E2E_SEED_KEY`                  | E2E only   | Used by e2e tests to seed fixtures (sent via `x-e2e-key` header)                                                                                  |
+| `ALLOWED_ORIGIN`                | Optional   | Production CORS origin (e.g. `https://jagaid.app`). Unset = same-origin only                                                                      |
+| `NEXT_PUBLIC_APP_URL`           | Optional   | Origin used in WhatsApp share text fallback when `window.location.origin` isn't available                                                         |
 
 Find Supabase keys at: **Supabase Dashboard → Project → Settings → API**
 
@@ -195,6 +195,7 @@ Go to [supabase.com](https://supabase.com) → New Project → name it `jagaid-t
 ### Step 2 — Apply the schema
 
 In the `jagaid-test` SQL editor, paste and run all migrations in order:
+
 ```
 supabase/migrations/001_initial_schema.sql
 supabase/migrations/002_fix_risk_and_constraints.sql
@@ -232,6 +233,7 @@ RUN_SUPABASE_E2E=1 bash scripts/setup.sh
 ```
 
 The script automatically:
+
 - Loads `.env.test`
 - Validates you're not using production credentials
 - Starts the dev server pointed at the test DB
@@ -391,6 +393,7 @@ npm run import:ojk       # safe to re-run — duplicates ignored
 3. Click **Download Template**, fill it in, drag and drop the file
 
 CSV format (parsed by `csv-parse/sync` — quoted values with embedded commas are supported):
+
 ```
 type,value,bank,scam_type
 domain,investasi-bodong.com,,Investasi Bodong
@@ -522,4 +525,4 @@ MIT — see [LICENSE](LICENSE)
 
 ---
 
-*Built to protect Indonesia. Powered by community.*
+_Built to protect Indonesia. Powered by community._

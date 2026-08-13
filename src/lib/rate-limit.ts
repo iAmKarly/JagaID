@@ -53,11 +53,7 @@ function maybeCleanup(now: number) {
  *
  * `max` is the inclusive cap; the (max+1)th call in `windowMs` returns ok=false.
  */
-export function rateLimit(
-  key: string,
-  max: number,
-  windowMs: number
-): RateLimitResult {
+export function rateLimit(key: string, max: number, windowMs: number): RateLimitResult {
   const now = Date.now();
   maybeCleanup(now);
 

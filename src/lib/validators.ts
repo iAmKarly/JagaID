@@ -1,12 +1,7 @@
 import { z } from "zod";
 import { normalizeQuery } from "./lookup";
 
-export const EntityTypeSchema = z.enum([
-  "bank_account",
-  "phone",
-  "ewallet",
-  "domain",
-]);
+export const EntityTypeSchema = z.enum(["bank_account", "phone", "ewallet", "domain"]);
 
 export const ScamTypeSchema = z.enum([
   "Transfer Penipuan",

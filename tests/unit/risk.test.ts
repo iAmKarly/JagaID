@@ -82,7 +82,11 @@ describe("calcRiskScore", () => {
   });
 
   it("caps total score at 100", () => {
-    const entity = makeEntity({ reports: 999, connected: Array(10).fill("x"), last_seen: daysAgo(1) });
+    const entity = makeEntity({
+      reports: 999,
+      connected: Array(10).fill("x"),
+      last_seen: daysAgo(1),
+    });
     const { score } = calcRiskScore(entity);
     expect(score).toBeLessThanOrEqual(100);
   });
@@ -141,7 +145,11 @@ describe("getRiskColor", () => {
 // ── calcRisk (integration of all) ─────────────────────────────────────────
 describe("calcRisk", () => {
   it("returns a complete RiskResult", () => {
-    const entity = makeEntity({ reports: 17, connected: ["a", "b"], last_seen: daysAgo(5) });
+    const entity = makeEntity({
+      reports: 17,
+      connected: ["a", "b"],
+      last_seen: daysAgo(5),
+    });
     const result = calcRisk(entity);
     expect(result).toHaveProperty("score");
     expect(result).toHaveProperty("label");
@@ -152,7 +160,11 @@ describe("calcRisk", () => {
   });
 
   it("marks a heavily reported entity as BAHAYA TINGGI", () => {
-    const entity = makeEntity({ reports: 20, connected: ["a", "b", "c"], last_seen: daysAgo(1) });
+    const entity = makeEntity({
+      reports: 20,
+      connected: ["a", "b", "c"],
+      last_seen: daysAgo(1),
+    });
     const result = calcRisk(entity);
     expect(result.label).toBe("BAHAYA TINGGI");
     expect(result.score).toBeGreaterThanOrEqual(80);

@@ -4,7 +4,7 @@ const BASE = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3000";
 
 // ── Shared helpers ─────────────────────────────────────────────────────────────
 const searchInput = (page: Page) => page.locator("[data-testid='search-input']");
-const searchBtn   = (page: Page) => page.locator("[data-testid='search-btn']");
+const searchBtn = (page: Page) => page.locator("[data-testid='search-btn']");
 
 /**
  * Type into search and click. Waits for result-card OR result-not-found
@@ -105,15 +105,23 @@ test.describe("Report (LAPOR) flow", () => {
     await expect(page.locator("[data-testid='report-error']")).toBeVisible();
   });
 
-  test("submitting valid report shows success confirmation", async ({ page }, testInfo) => {
+  test("submitting valid report shows success confirmation", async ({
+    page,
+  }, testInfo) => {
     await page.locator("[data-testid='select-entity-type']").selectOption("bank_account");
-    await page.locator("[data-testid='input-entity-value']").fill(uniqueReportValue(testInfo));
+    await page
+      .locator("[data-testid='input-entity-value']")
+      .fill(uniqueReportValue(testInfo));
     await page.locator("[data-testid='select-bank']").selectOption("BCA");
-    await page.locator("[data-testid='textarea-description']").fill(
-      "Pelaku mengaku penjual HP second lalu menghilang setelah menerima transfer."
-    );
+    await page
+      .locator("[data-testid='textarea-description']")
+      .fill(
+        "Pelaku mengaku penjual HP second lalu menghilang setelah menerima transfer."
+      );
     await page.locator("[data-testid='btn-submit-report']").click();
-    await expect(page.locator("[data-testid='report-success']")).toBeVisible({ timeout: 12000 });
+    await expect(page.locator("[data-testid='report-success']")).toBeVisible({
+      timeout: 12000,
+    });
   });
 
   test("bank selector appears for bank_account type", async ({ page }) => {
@@ -152,11 +160,15 @@ test.describe("Dashboard (DATA) flow", () => {
   });
 
   test("shows top dangerous entities list", async ({ page }) => {
-    await expect(page.locator("[data-testid='entity-row']").first()).toBeVisible({ timeout: 8000 });
+    await expect(page.locator("[data-testid='entity-row']").first()).toBeVisible({
+      timeout: 8000,
+    });
   });
 
   test("clicking entity row navigates to CEK tab and shows result", async ({ page }) => {
-    await expect(page.locator("[data-testid='entity-row']").first()).toBeVisible({ timeout: 8000 });
+    await expect(page.locator("[data-testid='entity-row']").first()).toBeVisible({
+      timeout: 8000,
+    });
     await page.locator("[data-testid='entity-row']").first().click();
     await expect(
       page.locator("[data-testid='result-card'], [data-testid='result-not-found']")
@@ -220,7 +232,9 @@ test.describe("Admin Upload (/admin/upload)", () => {
     await expect(page.locator("[data-testid='btn-reset']")).toBeVisible();
   });
 
-  test("clicking reset shows confirmation, clicking confirm without key shows alert", async ({ page }) => {
+  test("clicking reset shows confirmation, clicking confirm without key shows alert", async ({
+    page,
+  }) => {
     await page.locator("[data-testid='btn-reset']").click();
     await expect(page.locator("[data-testid='btn-reset-confirm']")).toBeVisible();
     page.on("dialog", async (dialog) => {

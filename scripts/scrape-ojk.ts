@@ -70,7 +70,10 @@ function sleep(ms: number) {
 }
 
 function normalizeValue(raw: string): string {
-  return raw.trim().replace(/\s+/g, " ").replace(/[^\w.\-:@]/g, "");
+  return raw
+    .trim()
+    .replace(/\s+/g, " ")
+    .replace(/[^\w.\-:@]/g, "");
 }
 
 function detectType(value: string): ScrapedEntity["type"] {
@@ -92,11 +95,28 @@ function detectType(value: string): ScrapedEntity["type"] {
  * bank name (BCA, BRI, BNI, Mandiri, BSI, CIMB, Permata, Danamon, BTN). If we
  * can identify the bank from the surrounding text, we attach it.
  */
-function extractBankAccountsWithContext(text: string): Array<{ value: string; bank?: string }> {
-  const banks = ["BCA", "BRI", "BNI", "Mandiri", "BSI", "CIMB", "Permata", "Danamon", "BTN"];
+function extractBankAccountsWithContext(
+  text: string
+): Array<{ value: string; bank?: string }> {
+  const banks = [
+    "BCA",
+    "BRI",
+    "BNI",
+    "Mandiri",
+    "BSI",
+    "CIMB",
+    "Permata",
+    "Danamon",
+    "BTN",
+  ];
   const keywords = [
-    "rekening", "no\\.\\s*rek", "norek", "no\\.?\\s*rekening",
-    "a\\.\\s*n\\.?", "a/n", "atas nama",
+    "rekening",
+    "no\\.\\s*rek",
+    "norek",
+    "no\\.?\\s*rekening",
+    "a\\.\\s*n\\.?",
+    "a/n",
+    "atas nama",
     ...banks,
   ];
   const keywordPattern = keywords.join("|");
@@ -116,7 +136,10 @@ function extractBankAccountsWithContext(text: string): Array<{ value: string; ba
     const bankMatch = banks.find((b) => new RegExp(`\\b${b}\\b`, "i").test(window));
     out.push({
       value: num,
-      bank: bankMatch ?? (banks.find((b) => b.toLowerCase() === ctxKeyword.toLowerCase()) ?? undefined),
+      bank:
+        bankMatch ??
+        banks.find((b) => b.toLowerCase() === ctxKeyword.toLowerCase()) ??
+        undefined,
     });
   }
   return out;
@@ -177,12 +200,30 @@ async function scrapeOjkAlertPortal(): Promise<ScrapedEntity[]> {
       const text = $(el).text();
       const phones = text.match(/08\d{8,11}|\+62\d{8,11}/g) ?? [];
       phones.forEach((phone) => {
-        results.push({ type: "phone", value: phone, scam_type: "Investasi Bodong", source: SOURCE, confidence: 50, scraped_at: NOW });
+        results.push({
+          type: "phone",
+          value: phone,
+          scam_type: "Investasi Bodong",
+          source: SOURCE,
+          confidence: 50,
+          scraped_at: NOW,
+        });
       });
-      const domains = text.match(/(?:https?:\/\/)?(?:www\.)?[\w-]+\.(?:com|id|net|org|co\.id)(?:\/\S*)?/gi) ?? [];
+      const domains =
+        text.match(
+          /(?:https?:\/\/)?(?:www\.)?[\w-]+\.(?:com|id|net|org|co\.id)(?:\/\S*)?/gi
+        ) ?? [];
       domains.forEach((domain) => {
         const val = domain.replace(/^https?:\/\/(www\.)?/, "").split("/")[0];
-        if (val.length > 4) results.push({ type: "domain", value: val, scam_type: "Investasi Bodong", source: SOURCE, confidence: 50, scraped_at: NOW });
+        if (val.length > 4)
+          results.push({
+            type: "domain",
+            value: val,
+            scam_type: "Investasi Bodong",
+            source: SOURCE,
+            confidence: 50,
+            scraped_at: NOW,
+          });
       });
     });
 
@@ -191,7 +232,9 @@ async function scrapeOjkAlertPortal(): Promise<ScrapedEntity[]> {
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.warn(`[scrape] ✗ ${SOURCE}: ${msg}`);
-    console.warn(`[scrape]   Tip: OJK blocks automated requests. Try running with a VPN or from a browser-controlled environment.`);
+    console.warn(
+      `[scrape]   Tip: OJK blocks automated requests. Try running with a VPN or from a browser-controlled environment.`
+    );
     return [];
   }
 }
@@ -217,7 +260,14 @@ async function scrapeOjkSwi(): Promise<ScrapedEntity[]> {
     // Phones: pattern is specific enough to use directly (08 prefix + length).
     const phones = fullText.match(/08\d{8,11}/g) ?? [];
     phones.forEach((p) =>
-      results.push({ type: "phone", value: p, scam_type: "Investasi Bodong", source: SOURCE, confidence: 40, scraped_at: NOW })
+      results.push({
+        type: "phone",
+        value: p,
+        scam_type: "Investasi Bodong",
+        source: SOURCE,
+        confidence: 40,
+        scraped_at: NOW,
+      })
     );
 
     // Bank accounts: only if a banking keyword appears within ~80 chars.
@@ -236,7 +286,14 @@ async function scrapeOjkSwi(): Promise<ScrapedEntity[]> {
     // Domains: TLD pattern is specific.
     const domains = fullText.match(/[\w-]+\.(?:com|id|net|org|co\.id)/gi) ?? [];
     domains.forEach((d) =>
-      results.push({ type: "domain", value: d, scam_type: "Investasi Bodong", source: SOURCE, confidence: 40, scraped_at: NOW })
+      results.push({
+        type: "domain",
+        value: d,
+        scam_type: "Investasi Bodong",
+        source: SOURCE,
+        confidence: 40,
+        scraped_at: NOW,
+      })
     );
 
     console.log(`[scrape] ✓ Found ${results.length} raw entities`);
@@ -268,15 +325,37 @@ async function scrapePatroliSiber(): Promise<ScrapedEntity[]> {
       const urls = text.match(/[\w-]+\.(?:com|id|net|org)/gi) ?? [];
 
       phones.forEach((p) =>
-        results.push({ type: "phone", value: p, scam_type: "Phishing", source: SOURCE, confidence: 50, scraped_at: NOW })
+        results.push({
+          type: "phone",
+          value: p,
+          scam_type: "Phishing",
+          source: SOURCE,
+          confidence: 50,
+          scraped_at: NOW,
+        })
       );
       urls.forEach((u) =>
-        results.push({ type: "domain", value: u, scam_type: "Phishing", source: SOURCE, confidence: 50, scraped_at: NOW })
+        results.push({
+          type: "domain",
+          value: u,
+          scam_type: "Phishing",
+          source: SOURCE,
+          confidence: 50,
+          scraped_at: NOW,
+        })
       );
 
       // Bank accounts only with context — PatroliSiber pages mix phone/IDs/account numbers.
       extractBankAccountsWithContext(text).forEach(({ value, bank }) =>
-        results.push({ type: "bank_account", value, bank, scam_type: "Phishing", source: SOURCE, confidence: 50, scraped_at: NOW })
+        results.push({
+          type: "bank_account",
+          value,
+          bank,
+          scam_type: "Phishing",
+          source: SOURCE,
+          confidence: 50,
+          scraped_at: NOW,
+        })
       );
     });
 
@@ -336,9 +415,9 @@ async function main() {
   const all: ScrapedEntity[] = [];
 
   // Run all scrapers
-  all.push(...await scrapeOjkAlertPortal());
-  all.push(...await scrapeOjkSwi());
-  all.push(...await scrapePatroliSiber());
+  all.push(...(await scrapeOjkAlertPortal()));
+  all.push(...(await scrapeOjkSwi()));
+  all.push(...(await scrapePatroliSiber()));
   all.push(...loadManualCsv());
 
   // Deduplicate
@@ -349,10 +428,16 @@ async function main() {
   console.log(`[scrape]   After dedup   : ${deduped.length}`);
 
   // Breakdown by type
-  const byType = deduped.reduce((acc, e) => {
-    acc[e.type] = (acc[e.type] ?? 0) + 1; return acc;
-  }, {} as Record<string, number>);
-  Object.entries(byType).forEach(([t, n]) => console.log(`[scrape]   ${t.padEnd(14)}: ${n}`));
+  const byType = deduped.reduce(
+    (acc, e) => {
+      acc[e.type] = (acc[e.type] ?? 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
+  Object.entries(byType).forEach(([t, n]) =>
+    console.log(`[scrape]   ${t.padEnd(14)}: ${n}`)
+  );
 
   // Write output
   const outPath = path.join(outDir, "ojk-scraped.json");

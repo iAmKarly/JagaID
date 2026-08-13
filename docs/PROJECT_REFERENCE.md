@@ -29,6 +29,7 @@ Read CLAUDE.md for AI assistant context. This file is the deep reference.
 JagaID is a community-powered anti-fraud intelligence platform for Indonesia.
 
 **What it does:**
+
 - Check if a bank account, phone number, e-wallet, or domain has been reported for fraud
 - Accept community fraud reports
 - Build a graph of connected fraud entities — mule networks, not just a blacklist
@@ -180,12 +181,12 @@ jagaid/
 
 ### Three environments
 
-| Environment | DB mode | Database | How activated |
-|---|---|---|---|
-| Local dev | false (default) | SEED_DB in-memory | `npm run dev` |
-| E2E testing | false | SEED_DB in-memory | `npm run test:e2e` |
-| E2E Supabase | true | jagaid-test project | `npm run test:e2e:supabase` |
-| Production | true | jagaid-prod project | Vercel deployment |
+| Environment  | DB mode         | Database            | How activated               |
+| ------------ | --------------- | ------------------- | --------------------------- |
+| Local dev    | false (default) | SEED_DB in-memory   | `npm run dev`               |
+| E2E testing  | false           | SEED_DB in-memory   | `npm run test:e2e`          |
+| E2E Supabase | true            | jagaid-test project | `npm run test:e2e:supabase` |
+| Production   | true            | jagaid-prod project | Vercel deployment           |
 
 ### Key rules
 
@@ -215,6 +216,7 @@ They throw only when called, not at import time — no build failures on fresh c
 ### Tables
 
 **`entities`**
+
 ```sql
 id          text PRIMARY KEY
 type        entity_type   -- 'bank_account' | 'phone' | 'ewallet' | 'domain'
@@ -225,9 +227,11 @@ last_seen   date
 created_at  timestamptz
 -- UNIQUE (type, value)   -- added in migration 002
 ```
+
 Index on `lower(trim(value))` for fast case-insensitive search; the unique constraint on `(type, value)` enables `onConflict: "type,value"` upserts in the admin importer.
 
 **`connections`** (graph edges)
+
 ```sql
 id          uuid PRIMARY KEY
 from_id     text → entities.id (CASCADE DELETE)
@@ -238,6 +242,7 @@ created_at  timestamptz
 ```
 
 **`reports`**
+
 ```sql
 id          text PRIMARY KEY
 entity_id   text → entities.id (CASCADE DELETE)
@@ -291,13 +296,15 @@ The `Entity` TypeScript type has `connected: string[]` but this field does not e
 ### Public endpoints
 
 #### `GET /api/check?q=`
+
 **Check if an entity has been reported.** Exact match only — `q` is normalized via `normalizeQuery` (trim, lowercase, strip whitespace and dashes) and compared with `.eq()`. Substring/wildcard search is intentionally disabled.
 
-| Param | Required | Constraint |
-|---|---|---|
-| `q` | Yes | 5–200 chars before normalization |
+| Param | Required | Constraint                       |
+| ----- | -------- | -------------------------------- |
+| `q`   | Yes      | 5–200 chars before normalization |
 
 Response (found):
+
 ```json
 {
   "found": true,
@@ -320,6 +327,7 @@ Status: `200` OK, `400` query too short, `500` DB error
 ---
 
 #### `POST /api/report`
+
 **Submit a fraud report.**
 
 Valid `type`: `bank_account` | `phone` | `ewallet` | `domain`
@@ -342,6 +350,7 @@ Status: `201` created, `400` bad JSON, `422` validation failed, `500` DB error
 ---
 
 #### `GET /api/stats`
+
 **Dashboard statistics.**
 
 ```json
@@ -356,6 +365,7 @@ Status: `201` created, `400` bad JSON, `422` validation failed, `500` DB error
 ### Admin endpoints (require `x-admin-key` header)
 
 #### `POST /api/admin/upload`
+
 Bulk import entities from CSV.
 Send as `multipart/form-data` with field `file`, or raw CSV body.
 
@@ -366,6 +376,7 @@ Status: `200` OK, `400` empty/bad CSV, `401` wrong key, `500` DB error
 ---
 
 #### `DELETE /api/admin/reset`
+
 Wipe all rows in FK-safe order: reports → connections → entities.
 
 Response: `{ "success": true, "deleted": { "reports", "connections", "entities" } }`
@@ -376,10 +387,12 @@ Status: `200` OK, `401` wrong key, `500` DB error
 
 ### Test-only endpoint
 
-#### `POST /api/e2e-seed`  (header: `x-e2e-key`)
+#### `POST /api/e2e-seed` (header: `x-e2e-key`)
+
 Insert known test fixtures for e2e tests. Called by the Playwright runner. In seed-fallback mode this is a no-op. In Supabase mode it inserts entities `e2e_1`–`e2e_5`, 3 connections, and 17 reports — the `1234567890` entity is guaranteed to score 99 (BAHAYA TINGGI).
 
-#### `DELETE /api/e2e-seed`  (header: `x-e2e-key`)
+#### `DELETE /api/e2e-seed` (header: `x-e2e-key`)
+
 Remove e2e test fixtures (rows with id starting `e2e_`). Called by `global-teardown.ts` after the suite.
 
 The key is **always sent in the `x-e2e-key` request header** — there is no query-string fallback. This keeps the secret out of server access logs.
@@ -390,18 +403,18 @@ The key is **always sent in the `x-e2e-key` request header** — there is no que
 
 ### `.env.local` — local dev and Vercel production
 
-| Variable | Used by | Notes |
-|---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | `supabase.ts` | From Supabase dashboard → Settings → API |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `supabase.ts` | Public — accepts legacy `anon` JWT or new `sb_publishable_*` opaque token |
-| `SUPABASE_SERVICE_ROLE_KEY` | `supabase.ts` admin | **Server-only** — accepts legacy `service_role` JWT or `sb_secret_*` opaque token. After migration 002, the only key allowed to write |
-| `USE_SUPABASE` | `db.ts` (server-only) | Runtime switch — set in `.env.test`, read at request time, no rebuild |
-| `NEXT_PUBLIC_USE_SUPABASE` | `db.ts` (build-time) | Baked into bundle at build — set in Vercel env vars for production |
-| `ADMIN_UPLOAD_KEY` | admin routes | Sent via `x-admin-key` header — protects `/admin/upload` and `/api/admin/*` |
-| `E2E_SEED_KEY` | `e2e-seed` route | Sent via `x-e2e-key` header — only needed when running `test:e2e:supabase` |
-| `ALLOWED_ORIGIN` | `next.config.js`, `middleware.ts` | Optional. Single cross-origin domain for `/api/*`. Unset = same-origin only |
-| `NEXT_PUBLIC_APP_URL` | `App.tsx` | Optional. Fallback origin for the WhatsApp share text |
-| `SCRAPER_CONTACT_EMAIL` | `scrape-ojk.ts` | Optional. Embedded in scraper User-Agent |
+| Variable                        | Used by                           | Notes                                                                                                                                 |
+| ------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | `supabase.ts`                     | From Supabase dashboard → Settings → API                                                                                              |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `supabase.ts`                     | Public — accepts legacy `anon` JWT or new `sb_publishable_*` opaque token                                                             |
+| `SUPABASE_SERVICE_ROLE_KEY`     | `supabase.ts` admin               | **Server-only** — accepts legacy `service_role` JWT or `sb_secret_*` opaque token. After migration 002, the only key allowed to write |
+| `USE_SUPABASE`                  | `db.ts` (server-only)             | Runtime switch — set in `.env.test`, read at request time, no rebuild                                                                 |
+| `NEXT_PUBLIC_USE_SUPABASE`      | `db.ts` (build-time)              | Baked into bundle at build — set in Vercel env vars for production                                                                    |
+| `ADMIN_UPLOAD_KEY`              | admin routes                      | Sent via `x-admin-key` header — protects `/admin/upload` and `/api/admin/*`                                                           |
+| `E2E_SEED_KEY`                  | `e2e-seed` route                  | Sent via `x-e2e-key` header — only needed when running `test:e2e:supabase`                                                            |
+| `ALLOWED_ORIGIN`                | `next.config.js`, `middleware.ts` | Optional. Single cross-origin domain for `/api/*`. Unset = same-origin only                                                           |
+| `NEXT_PUBLIC_APP_URL`           | `App.tsx`                         | Optional. Fallback origin for the WhatsApp share text                                                                                 |
+| `SCRAPER_CONTACT_EMAIL`         | `scrape-ojk.ts`                   | Optional. Embedded in scraper User-Agent                                                                                              |
 
 Generate secrets: `openssl rand -hex 32`
 
@@ -464,6 +477,7 @@ npm run data:refresh     scrape:ojk + import:ojk in sequence
 Runs entirely in-memory. No browser, no DB, no network needed. Always works.
 
 What is covered:
+
 - `lib/risk.ts` — all scoring functions, edge cases, caps
 - `lib/lookup.ts` — search, normalisation, graph traversal
 - `lib/validators.ts` — all valid/invalid inputs for every schema
@@ -479,11 +493,13 @@ What is covered:
 Playwright starts the dev server automatically with `NEXT_PUBLIC_USE_SUPABASE=false`. Tests run against SEED_DB. No Supabase needed.
 
 One-time setup:
+
 ```bash
 npx playwright install chromium
 ```
 
 Then just:
+
 ```bash
 npm run test:e2e
 ```
@@ -493,6 +509,7 @@ npm run test:e2e
 Tests the actual Supabase connection. Requires a separate test project.
 
 Setup (one-time):
+
 1. Create `jagaid-test` project at supabase.com
 2. Run all migrations in its SQL editor in order:
    - `supabase/migrations/001_initial_schema.sql`
@@ -502,6 +519,7 @@ Setup (one-time):
 4. Fill in with `jagaid-test` credentials (NOT production)
 
 Then run any time:
+
 ```bash
 npm run test:e2e:supabase
 ```
@@ -513,6 +531,7 @@ RUN_SUPABASE_E2E=1 bash scripts/setup.sh
 ```
 
 What happens:
+
 - Script loads `.env.test` and validates credentials aren't production
 - Dev server starts pointed at `jagaid-test`
 - Script calls `DELETE /api/e2e-seed` (with `x-e2e-key` header) to wipe any leftover fixtures
@@ -523,12 +542,14 @@ What happens:
 ### E2E fixture guarantees
 
 The e2e seed inserts `e2e_1` (`1234567890` bank account) so that:
+
 - `1234567890` → exists, **score = 99** (BAHAYA TINGGI), has 3 network connections
 - `0000000000` → does not exist, returns `found: false`
 - Dashboard → has entities to display
 - Admin page → all UI elements present
 
 Score breakdown (with default 5-day-old `last_seen`):
+
 - 15 reports → `reportScore = min(15 × 4, 60) = 60`
 - 3 connections → `networkScore = min(3 × 8, 24) = 24`
 - `recencyScore = 15` (within 30 days)
@@ -546,12 +567,12 @@ Runs `npm test` then `npm run test:e2e`. Requires Playwright browsers installed.
 
 ### Sources
 
-| Source | Method | Quality | Notes |
-|---|---|---|---|
-| OJK Investor Alert Portal | Scraper | High | Often 403 — use CSV fallback |
-| Satgas Waspada Investasi | Scraper | Medium | Regex extraction has false positives |
-| PatroliSiber.id | Scraper | Medium | Variable structure |
-| `data/manual.csv` | Manual | Controlled | Always works — primary production path |
+| Source                    | Method  | Quality    | Notes                                  |
+| ------------------------- | ------- | ---------- | -------------------------------------- |
+| OJK Investor Alert Portal | Scraper | High       | Often 403 — use CSV fallback           |
+| Satgas Waspada Investasi  | Scraper | Medium     | Regex extraction has false positives   |
+| PatroliSiber.id           | Scraper | Medium     | Variable structure                     |
+| `data/manual.csv`         | Manual  | Controlled | Always works — primary production path |
 
 ### Manual CSV format
 
@@ -564,6 +585,7 @@ ewallet,GoPay:08123456789,,Transfer Penipuan
 ```
 
 Rules:
+
 - Header row required (case-insensitive: `Type,Value,...` is accepted)
 - `bank` and `scam_type` may be empty (leave the comma)
 - Values are normalized on import (trim, lowercase, strip URL protocol, leading `www.`, path/query/hash, whitespace, and `-`). The example `https://www.investasi-cepat.com/path` stores as `investasicepat.com`; `GoPay:08123456789` stores as `gopay:08123456789`
@@ -605,29 +627,34 @@ All import operations are safe to re-run. `ignore-duplicates` prevents double-co
 ### First deployment
 
 **Step 1 — Supabase production project**
+
 1. Create project at supabase.com
 2. SQL Editor → run `supabase/migrations/001_initial_schema.sql`
 3. SQL Editor → run `supabase/migrations/002_fix_risk_and_constraints.sql` (must be on a clean entities table — empty or pre-deduped)
 4. SQL Editor → run `supabase/migrations/003_indexes_source_dedup.sql`
 
 **Step 2 — Vercel**
+
 1. Import repo at vercel.com
 2. Add environment variables (see section 6)
 3. Deploy
 
 **Step 3 — Verify connection**
 Visit `https://your-app.vercel.app/api/check?q=test`
+
 - Returns `{ "found": false }` → connected to Supabase, empty DB
 - Returns seed data → `NEXT_PUBLIC_USE_SUPABASE` not `"true"` — check and redeploy
 
 **Step 4 — Load initial data**
 Option A — via browser:
+
 1. Go to `https://your-app.vercel.app/admin/upload`
 2. Enter `ADMIN_UPLOAD_KEY`
 3. Reset DB (clears any stale data)
 4. Upload your CSV
 
 Option B — via scripts:
+
 ```bash
 npm run reset:db
 npm run scrape:ojk   # or fill data/manual.csv
@@ -651,6 +678,7 @@ The DB trigger fires on every report insert. The seed script uses `ignore-duplic
 ### CI (GitHub Actions)
 
 `.github/workflows/ci.yml` runs on push to main and on PRs:
+
 1. `tsc --noEmit` — type check
 2. `npm run lint` — ESLint
 3. `npm run format:check` — Prettier
@@ -662,48 +690,57 @@ The DB trigger fires on every report insert. The seed script uses `ignore-duplic
 ## 11. Configuration Files
 
 ### `tsconfig.json` — Next.js app
+
 - `include`: `src/**` only — tests explicitly excluded
 - No jest types — prevents `beforeAll not found` in `next build`
 - `moduleResolution: bundler` — required for Next.js 14
 
 ### `tsconfig.jest.json` — test files
+
 - `include`: `src/**` + `tests/**`
 - `types: ["jest", "node"]` — provides `beforeAll`, `expect`, etc.
 - `jsx: "react"` — for React component tests
 - Used by `jest.config.ts` transform
 
 ### `tsconfig.scripts.json` — CLI scripts
+
 - `module: commonjs`, `moduleResolution: node` — ts-node requirement
 - `noEmit: false`, `outDir: dist-scripts`
 - No Next.js-specific settings
 - `include`: `scripts/**`, `src/lib/**`, `src/types/**`
 
 ### `jest.config.ts`
+
 - `setupFilesAfterEnv` (not `setupFiles`) for `@testing-library/jest-dom`
 - `moduleNameMapper: { "@/*": "<rootDir>/src/$1" }` — path aliases
 - Transform uses `tsconfig.jest.json`
 - `coverageThreshold`: 70% on all metrics
 
 ### `playwright.config.ts`
+
 - `globalTeardown`: cleans e2e test fixtures after suite
 - No `globalSetup` — seeding happens in `beforeAll` inside the spec after server is ready
 - `webServer.reuseExistingServer: false` — always restart so env var is applied
 - When `USE_SUPABASE !== "true"`: forces `NEXT_PUBLIC_USE_SUPABASE=false` in webServer env
 
 ### `.eslintrc.json`
+
 - Extends `next/core-web-vitals`
 - `no-console: warn` (allows `console.error` and `console.warn`)
 
 ### `.prettierrc`
+
 - `semi: true`, `singleQuote: false`, `tabWidth: 2`
 - `trailingComma: "es5"`, `printWidth: 90`
 
 ### `next.config.js`
+
 - `reactStrictMode: true`, `poweredByHeader: false`
 - Security headers on every response: `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Strict-Transport-Security`, `Content-Security-Policy` (CSP relaxes `'unsafe-eval'` and `ws://localhost:*` in dev only, for HMR)
 - CORS headers on `/api/*` are **opt-in** via `ALLOWED_ORIGIN` env var. When set, response headers carry `Access-Control-Allow-Origin`, `Allow-Methods` (`GET, POST, DELETE, OPTIONS`), `Allow-Headers` (`Content-Type, x-admin-key, x-e2e-key`), and `Vary: Origin`. When unset, no CORS headers are emitted (same-origin only — the safe default)
 
 ### `src/middleware.ts`
+
 - Matches `/api/:path*`. Only handles `OPTIONS` preflight requests. Other methods pass through.
 - If `ALLOWED_ORIGIN` is unset → returns 405 on preflight (cross-origin not configured).
 - If `ALLOWED_ORIGIN` is set → 204 with full CORS headers when `Origin` matches; 403 otherwise.
@@ -727,12 +764,12 @@ score = min(reportScore + networkScore + recencyScore, 100)
 
 ### Labels
 
-| Score | Label | Colour |
-|---|---|---|
+| Score  | Label           | Colour    |
+| ------ | --------------- | --------- |
 | 80–100 | `BAHAYA TINGGI` | `#ff2d2d` |
-| 50–79 | `MENCURIGAKAN` | `#ff9500` |
-| 20–49 | `WASPADA` | `#ffd60a` |
-| 0–19 | `AMAN` | `#30d158` |
+| 50–79  | `MENCURIGAKAN`  | `#ff9500` |
+| 20–49  | `WASPADA`       | `#ffd60a` |
+| 0–19   | `AMAN`          | `#30d158` |
 
 ### Guaranteed BAHAYA TINGGI
 
@@ -744,6 +781,7 @@ Seed data and e2e fixtures always use ≥ 3 connections on the primary test enti
 ### Where scoring runs
 
 `lib/risk.ts` is pure — no imports, no async, no side effects. Used in:
+
 - Unit tests (never touches network)
 - API responses (server-side via `db.ts`)
 - Client-side dashboard sorting (App.tsx recomputes from real `connected[]` populated by `dbGetTopEntities`)

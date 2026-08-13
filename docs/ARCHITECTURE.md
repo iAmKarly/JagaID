@@ -87,6 +87,7 @@ Recency matters because old data decays. An account reported once in 2019 is les
 **Why pure functions?**
 
 `risk.ts` has zero imports from db, no async, no side effects. This lets it run identically in:
+
 - Unit tests (170 unit/integration tests never touch a network)
 - API route responses (server-side)
 - Browser dashboard (client-side, for the entity list sorted by risk)
@@ -122,6 +123,7 @@ The import script inserts entities with `reports: 0`, then inserts the report ro
 ### Row Level Security
 
 RLS is enabled on all three tables. After migration 002:
+
 - **Reads** are public (`for select using (true)`) on `entities`, `reports`, `connections`.
 - **Writes** are restricted to the Postgres `service_role` role (`for insert to service_role with check (true)`). The browser-exposed `anon` / `sb_publishable_*` key cannot insert; only server-side code holding the `service_role` / `sb_secret_*` key can. All API routes that write (`/api/report`, `/api/admin/upload`, `/api/e2e-seed`) call `supabaseAdmin()`, which uses the secret key.
 
@@ -189,8 +191,6 @@ CORS is opt-in. If `ALLOWED_ORIGIN` is unset, the API has no `Access-Control-All
 This means cross-site `fetch` from a victim's browser cannot post reports against arbitrary entities, which the wildcard `*` policy used to allow. Same-origin browser behaviour (loading `/api/check` from your own domain) doesn't trigger preflight, so the middleware is a no-op there.
 
 ---
-
-
 
 ```typescript
 // Bad — throws at module load time

@@ -8,7 +8,11 @@ export interface LoadedScriptEnv {
 }
 
 function wantsTestEnv(argv: string[]): boolean {
-  return argv.includes("--test") || argv.includes("--env=test") || process.env.JAGAID_ENV === "test";
+  return (
+    argv.includes("--test") ||
+    argv.includes("--env=test") ||
+    process.env.JAGAID_ENV === "test"
+  );
 }
 
 export function loadSupabaseScriptEnv(scriptName: string): LoadedScriptEnv {
@@ -20,7 +24,9 @@ export function loadSupabaseScriptEnv(scriptName: string): LoadedScriptEnv {
   if (result.error && !fs.existsSync(envPath)) {
     console.error(`\n  [${scriptName}] ✗ Missing ${envFile}`);
     if (envFile === ".env.test") {
-      console.error(`  Create it from ${exampleFile}, or omit --test to use .env.local.\n`);
+      console.error(
+        `  Create it from ${exampleFile}, or omit --test to use .env.local.\n`
+      );
     } else {
       console.error(`  Create it from ${exampleFile}.\n`);
     }

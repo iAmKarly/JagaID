@@ -16,9 +16,9 @@ Check whether a bank account, phone number, e-wallet, or domain has been reporte
 
 **Query parameters**
 
-| Parameter | Required | Description |
-|---|---|---|
-| `q` | Yes | The value to check. 5–200 characters before normalization. Whitespace, dashes, and case are ignored: `1234-567 890` and `1234567890` lookup the same row. |
+| Parameter | Required | Description                                                                                                                                               |
+| --------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `q`       | Yes      | The value to check. 5–200 characters before normalization. Whitespace, dashes, and case are ignored: `1234-567 890` and `1234567890` lookup the same row. |
 
 **Example request**
 
@@ -62,9 +62,30 @@ curl "https://jagaid.app/api/check?q=1234567890"
     }
   ],
   "network": [
-    { "id": "e2", "type": "phone",        "value": "08123456789",       "reports": 9, "connected": [], "last_seen": "2024-11-28" },
-    { "id": "e3", "type": "ewallet",      "value": "gopay:08123456789", "reports": 5, "connected": [], "last_seen": "2024-10-30" },
-    { "id": "e5", "type": "domain",       "value": "investasicepat.com","reports": 22, "connected": [], "last_seen": "2024-12-05" }
+    {
+      "id": "e2",
+      "type": "phone",
+      "value": "08123456789",
+      "reports": 9,
+      "connected": [],
+      "last_seen": "2024-11-28"
+    },
+    {
+      "id": "e3",
+      "type": "ewallet",
+      "value": "gopay:08123456789",
+      "reports": 5,
+      "connected": [],
+      "last_seen": "2024-10-30"
+    },
+    {
+      "id": "e5",
+      "type": "domain",
+      "value": "investasicepat.com",
+      "reports": 22,
+      "connected": [],
+      "last_seen": "2024-12-05"
+    }
   ]
 }
 ```
@@ -83,21 +104,22 @@ The status is still `200`. Treat the response shape as the contract; don't rely 
 
 **Error responses**
 
-| Status | Condition |
-|---|---|
-| 400 | `q` is missing or shorter than 5 characters (after trim) |
-| 500 | Database error |
+| Status | Condition                                                |
+| ------ | -------------------------------------------------------- |
+| 400    | `q` is missing or shorter than 5 characters (after trim) |
+| 500    | Database error                                           |
 
 **Risk score labels**
 
-| Label | Score range | Meaning |
-|---|---|---|
-| `BAHAYA TINGGI` | 80–100 | High danger — multiple reports, connected network |
-| `MENCURIGAKAN` | 50–79 | Suspicious — significant report volume or connections |
-| `WASPADA` | 20–49 | Caution — some reports, worth investigating |
-| `AMAN` | 0–19 | No significant reports found |
+| Label           | Score range | Meaning                                               |
+| --------------- | ----------- | ----------------------------------------------------- |
+| `BAHAYA TINGGI` | 80–100      | High danger — multiple reports, connected network     |
+| `MENCURIGAKAN`  | 50–79       | Suspicious — significant report volume or connections |
+| `WASPADA`       | 20–49       | Caution — some reports, worth investigating           |
+| `AMAN`          | 0–19        | No significant reports found                          |
 
 Score formula:
+
 - `reportScore = min(reports × 4, 60)`
 - `networkScore = min(connections × 8, 24)`
 - `recencyScore = 15` if `last_seen` within 30 days (and not in the future); `8` if within 90 days; else `0`
@@ -124,14 +146,14 @@ Submit a fraud report.
 
 **Fields**
 
-| Field | Required | Type | Constraints |
-|---|---|---|---|
-| `type` | Yes | string | `bank_account`, `phone`, `ewallet`, `domain` |
-| `value` | Yes | string | 5–200 characters before normalization. Stored as `normalizeQuery(value)` — trimmed, lowercased, whitespace and `-` stripped. Existing entries are matched via exact-match on the normalized form |
-| `bank` | No | string | Bank name (for `bank_account` type) |
-| `scam_type` | Yes | string | See valid values below |
-| `amount` | No | string | Loss amount, free text (e.g. "Rp 2.500.000") |
-| `description` | Yes | string | 10–2000 characters, trimmed |
+| Field         | Required | Type   | Constraints                                                                                                                                                                                      |
+| ------------- | -------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `type`        | Yes      | string | `bank_account`, `phone`, `ewallet`, `domain`                                                                                                                                                     |
+| `value`       | Yes      | string | 5–200 characters before normalization. Stored as `normalizeQuery(value)` — trimmed, lowercased, whitespace and `-` stripped. Existing entries are matched via exact-match on the normalized form |
+| `bank`        | No       | string | Bank name (for `bank_account` type)                                                                                                                                                              |
+| `scam_type`   | Yes      | string | See valid values below                                                                                                                                                                           |
+| `amount`      | No       | string | Loss amount, free text (e.g. "Rp 2.500.000")                                                                                                                                                     |
+| `description` | Yes      | string | 10–2000 characters, trimmed                                                                                                                                                                      |
 
 **Valid `scam_type` values**
 
@@ -171,11 +193,11 @@ The `value` `"1234-567 890"` is stored as `"1234567890"` (normalized). If a row 
 
 **Error responses**
 
-| Status | Condition |
-|---|---|
-| 400 | Invalid JSON body |
-| 422 | Validation failed — response includes `error.fieldErrors` and `error.formErrors` from Zod's `.flatten()` |
-| 500 | Database error |
+| Status | Condition                                                                                                |
+| ------ | -------------------------------------------------------------------------------------------------------- |
+| 400    | Invalid JSON body                                                                                        |
+| 422    | Validation failed — response includes `error.fieldErrors` and `error.formErrors` from Zod's `.flatten()` |
+| 500    | Database error                                                                                           |
 
 ---
 
@@ -216,9 +238,9 @@ curl "https://jagaid.app/api/stats"
 
 **Error responses**
 
-| Status | Condition |
-|---|---|
-| 500 | Database error (returned as `{"error": "Database error"}`) |
+| Status | Condition                                                  |
+| ------ | ---------------------------------------------------------- |
+| 500    | Database error (returned as `{"error": "Database error"}`) |
 
 ---
 
@@ -242,6 +264,7 @@ Content-Type: multipart/form-data        # or text/plain for raw body
 **Body** — multipart form with a `file` field, OR raw CSV as the body.
 
 **CSV columns** (header row required, case-insensitive):
+
 - `type` — one of `bank_account`, `phone`, `ewallet`, `domain` (synonyms like `hp`, `gopay`, `url` are mapped automatically)
 - `value` — the entity value (will be normalized)
 - `bank` — optional, used for `bank_account`
@@ -280,11 +303,11 @@ curl -X POST "https://jagaid.app/api/admin/upload" \
 
 **Error responses**
 
-| Status | Condition |
-|---|---|
-| 400 | No file uploaded (multipart), empty CSV body, or zero valid rows after parsing |
-| 401 | Missing or incorrect `x-admin-key` |
-| 500 | Database error |
+| Status | Condition                                                                      |
+| ------ | ------------------------------------------------------------------------------ |
+| 400    | No file uploaded (multipart), empty CSV body, or zero valid rows after parsing |
+| 401    | Missing or incorrect `x-admin-key`                                             |
+| 500    | Database error                                                                 |
 
 ---
 
@@ -318,10 +341,10 @@ curl -X DELETE "https://jagaid.app/api/admin/reset" \
 
 **Error responses**
 
-| Status | Condition |
-|---|---|
-| 401 | Missing or incorrect `x-admin-key` |
-| 500 | Database error (returned as `{"error": "Failed to delete <table>: <message>"}`) |
+| Status | Condition                                                                       |
+| ------ | ------------------------------------------------------------------------------- |
+| 401    | Missing or incorrect `x-admin-key`                                              |
+| 500    | Database error (returned as `{"error": "Failed to delete <table>: <message>"}`) |
 
 ---
 
@@ -345,10 +368,10 @@ There is **no** query-string fallback — the key must be in the header.
 
 **Error responses**
 
-| Status | Condition |
-|---|---|
-| 401 | Missing or incorrect `x-e2e-key` |
-| 500 | Database error |
+| Status | Condition                        |
+| ------ | -------------------------------- |
+| 401    | Missing or incorrect `x-e2e-key` |
+| 500    | Database error                   |
 
 Do not enable `E2E_SEED_KEY` in production. Setting it leaves a server-side write endpoint open to anyone who knows the secret.
 

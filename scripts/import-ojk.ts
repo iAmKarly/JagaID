@@ -26,7 +26,9 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!SUPABASE_URL || !SUPABASE_KEY) {
-  console.error(`\n  [import] ✗ Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in ${loadedEnv.envFile}\n`);
+  console.error(
+    `\n  [import] ✗ Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in ${loadedEnv.envFile}\n`
+  );
   process.exit(1);
 }
 
@@ -72,7 +74,12 @@ async function countRows(table: string): Promise<number> {
 
 // ── Transform scraped → DB row ─────────────────────────────────────────────
 function slugify(s: string): string {
-  return s.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 60);
+  return s
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 60);
 }
 
 function detectType(value: string): ScrapedEntity["type"] {
@@ -83,7 +90,12 @@ function detectType(value: string): ScrapedEntity["type"] {
 }
 
 function parseType(raw: string | undefined, value: string): ScrapedEntity["type"] {
-  if (raw === "bank_account" || raw === "phone" || raw === "ewallet" || raw === "domain") {
+  if (
+    raw === "bank_account" ||
+    raw === "phone" ||
+    raw === "ewallet" ||
+    raw === "domain"
+  ) {
     return raw;
   }
   return detectType(value);
@@ -117,11 +129,11 @@ function toEntityRow(e: ScrapedEntity): Record<string, unknown> {
     type: e.type,
     value: normalizeImportedValue(e.value),
     bank: e.bank ?? null,
-    reports: 0,                          // will be incremented by trigger when reports are inserted
+    reports: 0, // will be incremented by trigger when reports are inserted
     last_seen: new Date().toISOString().split("T")[0],
     created_at: new Date().toISOString(),
     source: shortSource(e.source),
-    confidence: e.confidence ?? 30,      // default to low if scraper didn't tag it
+    confidence: e.confidence ?? 30, // default to low if scraper didn't tag it
   };
 }
 
@@ -140,9 +152,14 @@ function toReportRow(entityId: string, e: ScrapedEntity): Record<string, unknown
 }
 
 const VALID_SCAM_TYPES = new Set([
-  "Transfer Penipuan", "Investasi Bodong", "Phishing",
-  "COD Palsu", "Pinjol Ilegal", "Belanja Online",
-  "Lowongan Kerja Palsu", "Lainnya",
+  "Transfer Penipuan",
+  "Investasi Bodong",
+  "Phishing",
+  "COD Palsu",
+  "Pinjol Ilegal",
+  "Belanja Online",
+  "Lowongan Kerja Palsu",
+  "Lainnya",
 ]);
 
 function mapScamType(raw: string): string {
@@ -220,18 +237,22 @@ async function main() {
     raw = loadManualCsv(dataDir);
     if (raw.length === 0) {
       console.error(`  [import] ✗ No scraped data found at ${dataPath}`);
-      console.error(`  Also found no importable rows in ${path.join(dataDir, "manual.csv")}.\n`);
+      console.error(
+        `  Also found no importable rows in ${path.join(dataDir, "manual.csv")}.\n`
+      );
       process.exit(1);
     }
-    console.log(`  Loaded  : ${raw.length} manual entities from ${path.join(dataDir, "manual.csv")}`);
+    console.log(
+      `  Loaded  : ${raw.length} manual entities from ${path.join(dataDir, "manual.csv")}`
+    );
   }
 
   // Filter out obviously bad values
   const clean = raw.filter((e) => {
     const v = e.value.trim();
-    if (v.length < 5) return false;             // too short
-    if (v.length > 200) return false;           // too long
-    if (/^[0\s]+$/.test(v)) return false;       // all zeros
+    if (v.length < 5) return false; // too short
+    if (v.length > 200) return false; // too long
+    if (/^[0\s]+$/.test(v)) return false; // all zeros
     return true;
   });
 
@@ -243,9 +264,13 @@ async function main() {
   }
 
   // Show breakdown
-  const byType = clean.reduce((acc, e) => {
-    acc[e.type] = (acc[e.type] ?? 0) + 1; return acc;
-  }, {} as Record<string, number>);
+  const byType = clean.reduce(
+    (acc, e) => {
+      acc[e.type] = (acc[e.type] ?? 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
   console.log("\n  Breakdown by type:");
   Object.entries(byType).forEach(([t, n]) => console.log(`    ${t.padEnd(14)}: ${n}`));
 

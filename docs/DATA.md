@@ -8,12 +8,12 @@ This document covers how data gets into JagaID — from OJK scraping to CSV impo
 
 JagaID's data comes from four sources, in order of reliability:
 
-| Source | How | Reliability | Volume |
-|---|---|---|---|
-| OJK Investor Alert Portal | Automated scrape | Low (403 blocks) | High quality |
-| Satgas Waspada Investasi | Automated scrape | Low (403 blocks) | High quality |
-| PatroliSiber.id | Automated scrape | Medium | Medium quality |
-| Manual CSV | You fill in the template | 100% | You control it |
+| Source                    | How                      | Reliability      | Volume         |
+| ------------------------- | ------------------------ | ---------------- | -------------- |
+| OJK Investor Alert Portal | Automated scrape         | Low (403 blocks) | High quality   |
+| Satgas Waspada Investasi  | Automated scrape         | Low (403 blocks) | High quality   |
+| PatroliSiber.id           | Automated scrape         | Medium           | Medium quality |
+| Manual CSV                | You fill in the template | 100%             | You control it |
 
 In practice, **the manual CSV is the primary production workflow**. OJK's portal blocks automated requests most of the time. The scrapers exist for when access is possible and as a foundation for future improvements (Playwright-based browser scraping, rotating proxies, etc.).
 
@@ -23,12 +23,12 @@ In practice, **the manual CSV is the primary production workflow**. OJK's portal
 
 Every entity in JagaID has one of four types:
 
-| Type | Example input | Stored as | Description |
-|---|---|---|---|
-| `bank_account` | `1234567890` | `1234567890` | Bank account number, with optional `bank` field |
-| `phone` | `0812-3456-789` | `08123456789` | Indonesian mobile number |
-| `ewallet` | `GoPay:08123456789` | `gopay:08123456789` | GoPay, OVO, Dana, ShopeePay |
-| `domain` | `Investasi-Cepat.com` | `investasicepat.com` | Website or URL |
+| Type           | Example input         | Stored as            | Description                                     |
+| -------------- | --------------------- | -------------------- | ----------------------------------------------- |
+| `bank_account` | `1234567890`          | `1234567890`         | Bank account number, with optional `bank` field |
+| `phone`        | `0812-3456-789`       | `08123456789`        | Indonesian mobile number                        |
+| `ewallet`      | `GoPay:08123456789`   | `gopay:08123456789`  | GoPay, OVO, Dana, ShopeePay                     |
+| `domain`       | `Investasi-Cepat.com` | `investasicepat.com` | Website or URL                                  |
 
 **Values are always normalized before storage.** `normalizeQuery` (in `src/lib/lookup.ts`) trims, lowercases, and strips whitespace and `-`. The CSV importer, the `/api/report` validator, the e2e seed route, and `scripts/seed.ts` all apply it. This is what lets `dbLookup` use `.eq("value", q)` for exact match — both sides of the comparison are guaranteed to be in the same form.
 
@@ -56,6 +56,7 @@ domain,pinjol-kilat.id,,Pinjol Ilegal
 - `scam_type` — optional. Defaults to `Lainnya`. Free-text matches like "investasi", "phish", "pinjol", "transfer" are mapped to enum values.
 
 **Parser rules:**
+
 - Parsed by `csv-parse/sync` — handles quoted values with embedded commas (`"Wahyu, Inc",...`), embedded newlines in quoted fields, CRLF/LF line endings, BOM-prefixed files
 - Header row is required. Header names are case-insensitive
 - Rows with empty `value` are silently skipped
@@ -155,6 +156,7 @@ npm run reset:db
 ```
 
 This will:
+
 1. Show current row counts
 2. Ask you to type `"yes"` to confirm
 3. Delete rows in FK-safe order: `reports` → `connections` → `entities`
@@ -179,6 +181,7 @@ The SWI (Satgas Waspada Investasi) press releases contain more narrative text wi
 ### Filtering applied during import
 
 `import-ojk.ts` filters out entities where:
+
 - `value` is shorter than 5 characters
 - `value` is longer than 200 characters
 - `value` is all zeros
@@ -224,6 +227,7 @@ To add a new scraper source, add an entry to the `SOURCES` array in `scripts/scr
 ```
 
 The `detectType()` helper classifies values automatically based on their format:
+
 - Starts with `08` or `+62` → `phone`
 - Contains `.com`, `.id`, `.net`, etc. → `domain`
 - Contains `gopay`, `ovo`, `dana` → `ewallet`
@@ -239,7 +243,7 @@ The current workflow is manual (run scripts locally). For automated refreshes, t
 # .github/workflows/refresh.yml
 on:
   schedule:
-    - cron: '0 2 * * 1'  # Every Monday at 2am
+    - cron: "0 2 * * 1" # Every Monday at 2am
 jobs:
   refresh:
     runs-on: ubuntu-latest

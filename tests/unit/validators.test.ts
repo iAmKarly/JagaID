@@ -37,9 +37,7 @@ describe("ReportPayloadSchema", () => {
   });
 
   it("rejects value shorter than 5 chars", () => {
-    expect(() =>
-      ReportPayloadSchema.parse({ ...valid, value: "123" })
-    ).toThrow();
+    expect(() => ReportPayloadSchema.parse({ ...valid, value: "123" })).toThrow();
   });
 
   it("rejects description shorter than 10 chars", () => {
@@ -65,9 +63,7 @@ describe("ReportPayloadSchema", () => {
   });
 
   it("rejects bank field longer than 50 chars", () => {
-    expect(() =>
-      ReportPayloadSchema.parse({ ...valid, bank: "x".repeat(51) })
-    ).toThrow();
+    expect(() => ReportPayloadSchema.parse({ ...valid, bank: "x".repeat(51) })).toThrow();
   });
 
   it("rejects amount field longer than 50 chars", () => {
@@ -95,9 +91,7 @@ describe("ReportPayloadSchema", () => {
       "Lainnya",
     ] as const;
     scamTypes.forEach((s) => {
-      expect(() =>
-        ReportPayloadSchema.parse({ ...valid, scam_type: s })
-      ).not.toThrow();
+      expect(() => ReportPayloadSchema.parse({ ...valid, scam_type: s })).not.toThrow();
     });
   });
 });

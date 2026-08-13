@@ -14,9 +14,7 @@ export const SEED_DB: Database = {
       bank: "BRI",
       reports: 20,
       connected: ["e2", "e3", "e5"],
-      last_seen: new Date(Date.now() - 5 * 86_400_000)
-        .toISOString()
-        .split("T")[0],
+      last_seen: new Date(Date.now() - 5 * 86_400_000).toISOString().split("T")[0],
     },
     {
       id: "e2",
@@ -24,9 +22,7 @@ export const SEED_DB: Database = {
       value: "08123456789",
       reports: 9,
       connected: ["e1", "e4"],
-      last_seen: new Date(Date.now() - 10 * 86_400_000)
-        .toISOString()
-        .split("T")[0],
+      last_seen: new Date(Date.now() - 10 * 86_400_000).toISOString().split("T")[0],
     },
     {
       id: "e3",
@@ -34,9 +30,7 @@ export const SEED_DB: Database = {
       value: "gopay:08123456789",
       reports: 5,
       connected: ["e1"],
-      last_seen: new Date(Date.now() - 45 * 86_400_000)
-        .toISOString()
-        .split("T")[0],
+      last_seen: new Date(Date.now() - 45 * 86_400_000).toISOString().split("T")[0],
     },
     {
       id: "e4",
@@ -45,9 +39,7 @@ export const SEED_DB: Database = {
       bank: "BCA",
       reports: 3,
       connected: ["e2"],
-      last_seen: new Date(Date.now() - 100 * 86_400_000)
-        .toISOString()
-        .split("T")[0],
+      last_seen: new Date(Date.now() - 100 * 86_400_000).toISOString().split("T")[0],
     },
     {
       id: "e5",
@@ -55,9 +47,7 @@ export const SEED_DB: Database = {
       value: "investasicepat.com",
       reports: 22,
       connected: ["e1"],
-      last_seen: new Date(Date.now() - 2 * 86_400_000)
-        .toISOString()
-        .split("T")[0],
+      last_seen: new Date(Date.now() - 2 * 86_400_000).toISOString().split("T")[0],
     },
     {
       id: "e6",
@@ -66,9 +56,7 @@ export const SEED_DB: Database = {
       bank: "Mandiri",
       reports: 1,
       connected: [],
-      last_seen: new Date(Date.now() - 200 * 86_400_000)
-        .toISOString()
-        .split("T")[0],
+      last_seen: new Date(Date.now() - 200 * 86_400_000).toISOString().split("T")[0],
     },
   ],
   reports: [

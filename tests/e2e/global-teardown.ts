@@ -19,8 +19,7 @@ import { FullConfig } from "@playwright/test";
 const BASE = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3000";
 const KEY = process.env.E2E_SEED_KEY;
 const IS_SUPABASE =
-  process.env.USE_SUPABASE === "true" ||
-  process.env.NEXT_PUBLIC_USE_SUPABASE === "true";
+  process.env.USE_SUPABASE === "true" || process.env.NEXT_PUBLIC_USE_SUPABASE === "true";
 
 async function globalTeardown(_config: FullConfig) {
   if (!IS_SUPABASE || !KEY) return;
@@ -30,7 +29,11 @@ async function globalTeardown(_config: FullConfig) {
       method: "DELETE",
       headers: { "x-e2e-key": KEY },
     });
-    const json = await res.json() as { ok?: boolean; mode?: string; cleaned?: string[] };
+    const json = (await res.json()) as {
+      ok?: boolean;
+      mode?: string;
+      cleaned?: string[];
+    };
     if (json.ok) {
       console.log(`[e2e-teardown] ✓ Test fixtures cleaned (mode: ${json.mode})`);
       if (json.cleaned) {

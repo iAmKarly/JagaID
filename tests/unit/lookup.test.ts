@@ -48,7 +48,9 @@ describe("normalizeQuery", () => {
   });
 
   it("strips path, query, and hash", () => {
-    expect(normalizeQuery("https://investasicepat.com/path?ref=foo#hash")).toBe("investasicepat.com");
+    expect(normalizeQuery("https://investasicepat.com/path?ref=foo#hash")).toBe(
+      "investasicepat.com"
+    );
   });
 });
 

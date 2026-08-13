@@ -7,7 +7,7 @@ export function supabase() {
   if (!url || !key) {
     throw new Error(
       "Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY. " +
-      "Set them in .env.local or Vercel environment variables."
+        "Set them in .env.local or Vercel environment variables."
     );
   }
   return createClient(url, key);
@@ -20,7 +20,7 @@ export function supabaseAdmin() {
   if (!url || !key) {
     throw new Error(
       "Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY. " +
-      "Required for admin operations."
+        "Required for admin operations."
     );
   }
   return createClient(url, key, {

@@ -7,4 +7,6 @@ beforeAll(() => {
     originalError(...args);
   };
 });
-afterAll(() => { console.error = originalError; });
+afterAll(() => {
+  console.error = originalError;
+});

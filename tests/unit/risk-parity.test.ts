@@ -27,16 +27,59 @@ function viewRiskScore(entity: Entity): number {
 }
 
 const today = new Date().toISOString().split("T")[0];
-const daysAgo = (n: number) => new Date(Date.now() - n * 86_400_000).toISOString().split("T")[0];
+const daysAgo = (n: number) =>
+  new Date(Date.now() - n * 86_400_000).toISOString().split("T")[0];
 
 const samples: Entity[] = [
-  { id: "a", type: "bank_account", value: "1234567890", reports: 15, connected: ["x", "y", "z"], last_seen: today },
-  { id: "b", type: "phone",        value: "08123",      reports: 0,  connected: [],              last_seen: daysAgo(200) },
-  { id: "c", type: "domain",       value: "scam.com",   reports: 5,  connected: ["x"],           last_seen: daysAgo(60) },
-  { id: "d", type: "ewallet",      value: "gopay:1",    reports: 100, connected: Array(50).fill("x"), last_seen: today }, // caps test
-  { id: "e", type: "bank_account", value: "9999",       reports: 1,  connected: [],              last_seen: daysAgo(89) },
+  {
+    id: "a",
+    type: "bank_account",
+    value: "1234567890",
+    reports: 15,
+    connected: ["x", "y", "z"],
+    last_seen: today,
+  },
+  {
+    id: "b",
+    type: "phone",
+    value: "08123",
+    reports: 0,
+    connected: [],
+    last_seen: daysAgo(200),
+  },
+  {
+    id: "c",
+    type: "domain",
+    value: "scam.com",
+    reports: 5,
+    connected: ["x"],
+    last_seen: daysAgo(60),
+  },
+  {
+    id: "d",
+    type: "ewallet",
+    value: "gopay:1",
+    reports: 100,
+    connected: Array(50).fill("x"),
+    last_seen: today,
+  }, // caps test
+  {
+    id: "e",
+    type: "bank_account",
+    value: "9999",
+    reports: 1,
+    connected: [],
+    last_seen: daysAgo(89),
+  },
   // Future date — must give recency=0 in both TS and SQL
-  { id: "f", type: "bank_account", value: "8888",       reports: 5,  connected: ["x"],           last_seen: daysAgo(-7) },
+  {
+    id: "f",
+    type: "bank_account",
+    value: "8888",
+    reports: 5,
+    connected: ["x"],
+    last_seen: daysAgo(-7),
+  },
 ];
 
 describe("risk parity (SQL view ↔ TS calcRisk)", () => {

@@ -41,7 +41,11 @@ function handleReport(payload: unknown, db: Database): { status: number; body: o
     entityId = existing.id;
     newDb.entities = newDb.entities.map((e) =>
       e.id === existing.id
-        ? { ...e, reports: e.reports + 1, last_seen: new Date().toISOString().split("T")[0] }
+        ? {
+            ...e,
+            reports: e.reports + 1,
+            last_seen: new Date().toISOString().split("T")[0],
+          }
         : e
     );
   } else {
@@ -127,7 +131,10 @@ describe("POST /api/report", () => {
   });
 
   it("returns 201 for valid new entity report", () => {
-    const testDb: Database = { entities: [...SEED_DB.entities], reports: [...SEED_DB.reports] };
+    const testDb: Database = {
+      entities: [...SEED_DB.entities],
+      reports: [...SEED_DB.reports],
+    };
     const res = handleReport(validPayload, testDb);
     expect(res.status).toBe(201);
     expect((res.body as { success: boolean }).success).toBe(true);
@@ -166,7 +173,10 @@ describe("POST /api/report", () => {
   });
 
   it("adds new entity to database when not found", () => {
-    const testDb: Database = { entities: [...SEED_DB.entities], reports: [...SEED_DB.reports] };
+    const testDb: Database = {
+      entities: [...SEED_DB.entities],
+      reports: [...SEED_DB.reports],
+    };
     const countBefore = testDb.entities.length;
     handleReport(validPayload, testDb);
     // entity is added inside the handler's newDb copy; check via response

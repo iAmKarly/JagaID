@@ -35,8 +35,7 @@ import { SEED_DB } from "./seed-data";
 // env vars (set after the module may have first loaded) take effect correctly.
 function isSupabaseMode(): boolean {
   return (
-    process.env.USE_SUPABASE === "true" ||
-    process.env.NEXT_PUBLIC_USE_SUPABASE === "true"
+    process.env.USE_SUPABASE === "true" || process.env.NEXT_PUBLIC_USE_SUPABASE === "true"
   );
 }
 
@@ -96,21 +95,18 @@ export async function dbLookup(query: string): Promise<LookupResponse> {
     .select("from_id, to_id")
     .or(`from_id.eq.${entity.id},to_id.eq.${entity.id}`);
 
-  const connectedIds = (connections ?? []).map(
-    (c: { from_id: string; to_id: string }) =>
-      c.from_id === entity.id ? c.to_id : c.from_id
+  const connectedIds = (connections ?? []).map((c: { from_id: string; to_id: string }) =>
+    c.from_id === entity.id ? c.to_id : c.from_id
   );
 
   // Pull network entities through the risk view so each one carries its own
   // (correct) precomputed risk. The previous code stubbed connected: [] which
   // caused calcRisk to under-count network score for these neighbours; reading
   // from the view fixes that latent bug.
-  const { data: networkRows } = connectedIds.length > 0
-    ? await db
-        .from("entity_risk_summary")
-        .select("*")
-        .in("id", connectedIds)
-    : { data: [] };
+  const { data: networkRows } =
+    connectedIds.length > 0
+      ? await db.from("entity_risk_summary").select("*").in("id", connectedIds)
+      : { data: [] };
 
   const network = (networkRows ?? []).map((r) =>
     fromViewRow(r as Entity & { connection_count: number; risk_score: number })
@@ -146,14 +142,20 @@ export async function dbSubmitReport(
     } else {
       entityId = `e_${Date.now()}`;
       SEED_DB.entities.push({
-        id: entityId, type: payload.type, value: normalizedValue,
-        bank: payload.bank, reports: 1, connected: [],
+        id: entityId,
+        type: payload.type,
+        value: normalizedValue,
+        bank: payload.bank,
+        reports: 1,
+        connected: [],
         last_seen: new Date().toISOString().split("T")[0],
       });
     }
     SEED_DB.reports.push({
-      id: `r_${Date.now()}`, entity_id: entityId,
-      type: payload.scam_type, amount: payload.amount,
+      id: `r_${Date.now()}`,
+      entity_id: entityId,
+      type: payload.scam_type,
+      amount: payload.amount,
       date: new Date().toISOString().split("T")[0],
       description: payload.description,
     });
@@ -209,9 +211,7 @@ export async function dbSubmitReport(
     // Postgres unique-violation = same IP submitting same entity same day.
     // Surface as a domain-specific error so the route can return 429.
     if (reportError.code === "23505") {
-      throw new DuplicateReportError(
-        "Anda sudah melaporkan entitas ini hari ini."
-      );
+      throw new DuplicateReportError("Anda sudah melaporkan entitas ini hari ini.");
     }
     throw new Error(`Report insert failed: ${reportError.message}`);
   }
@@ -254,8 +254,14 @@ export async function dbGetStats(): Promise<{
   ] = await Promise.all([
     db.from("reports").select("*", { count: "exact", head: true }),
     db.from("entities").select("*", { count: "exact", head: true }),
-    db.from("entities").select("*", { count: "exact", head: true }).eq("type", "bank_account"),
-    db.from("entity_risk_summary").select("*", { count: "exact", head: true }).gte("risk_score", 80),
+    db
+      .from("entities")
+      .select("*", { count: "exact", head: true })
+      .eq("type", "bank_account"),
+    db
+      .from("entity_risk_summary")
+      .select("*", { count: "exact", head: true })
+      .gte("risk_score", 80),
   ]);
 
   return {

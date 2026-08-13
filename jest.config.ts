@@ -9,15 +9,9 @@ const config: Config = {
     "^@/(.*)$": "<rootDir>/src/$1",
   },
   transform: {
-    "^.+\\.tsx?$": [
-      "ts-jest",
-      { tsconfig: "<rootDir>/tsconfig.jest.json" },
-    ],
+    "^.+\\.tsx?$": ["ts-jest", { tsconfig: "<rootDir>/tsconfig.jest.json" }],
   },
-  testMatch: [
-    "**/tests/unit/**/*.test.ts?(x)",
-    "**/tests/integration/**/*.test.ts?(x)",
-  ],
+  testMatch: ["**/tests/unit/**/*.test.ts?(x)", "**/tests/integration/**/*.test.ts?(x)"],
   collectCoverageFrom: [
     "src/**/*.{ts,tsx}",
     "!src/**/*.d.ts",

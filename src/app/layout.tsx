@@ -26,11 +26,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   // Reading headers() forces this layout into dynamic rendering. That's
   // required for the per-request CSP nonce (set in middleware.ts) to land
   // correctly in the HTML — a statically pre-rendered layout would freeze a

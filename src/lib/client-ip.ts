@@ -34,7 +34,10 @@ export function getClientIp(req: NextRequest): string {
 
 export function hashIp(ip: string): string {
   const salt = process.env.IP_HASH_SALT ?? "jagaid-dev-salt-please-set-in-env";
-  return createHash("sha256").update(salt + ":" + ip).digest("hex").slice(0, 32);
+  return createHash("sha256")
+    .update(salt + ":" + ip)
+    .digest("hex")
+    .slice(0, 32);
 }
 
 /** Convenience: getClientIp + hashIp in one call. */

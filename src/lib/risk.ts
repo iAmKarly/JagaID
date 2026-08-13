@@ -7,9 +7,7 @@ export const RISK_WEIGHTS = {
 } as const;
 
 export function calcRecencyScore(lastSeen: string): number {
-  const daysSince = Math.floor(
-    (Date.now() - new Date(lastSeen).getTime()) / 86_400_000
-  );
+  const daysSince = Math.floor((Date.now() - new Date(lastSeen).getTime()) / 86_400_000);
   if (daysSince < 0) return RISK_WEIGHTS.recencyScore.older;
   if (daysSince < 30) return RISK_WEIGHTS.recencyScore.within30Days;
   if (daysSince < 90) return RISK_WEIGHTS.recencyScore.within90Days;
@@ -33,9 +31,7 @@ export function calcRiskScore(entity: Entity): {
   return { score, breakdown: { reportScore, networkScore, recencyScore } };
 }
 
-export function getRiskLabel(
-  score: number
-): RiskResult["label"] {
+export function getRiskLabel(score: number): RiskResult["label"] {
   if (score >= 80) return "BAHAYA TINGGI";
   if (score >= 50) return "MENCURIGAKAN";
   if (score >= 20) return "WASPADA";

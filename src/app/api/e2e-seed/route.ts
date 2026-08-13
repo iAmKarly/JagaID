@@ -30,7 +30,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const USE_SUPABASE = process.env.USE_SUPABASE === "true" || process.env.NEXT_PUBLIC_USE_SUPABASE === "true";
+  const USE_SUPABASE =
+    process.env.USE_SUPABASE === "true" ||
+    process.env.NEXT_PUBLIC_USE_SUPABASE === "true";
 
   if (!USE_SUPABASE) {
     // Seed-fallback mode — SEED_DB is already populated and correct, nothing to do
@@ -56,11 +58,46 @@ export async function POST(request: NextRequest) {
   //   recencyScore = 15 (within 30 days)
   //   total = 99 → BAHAYA TINGGI ✓
   const testEntities = [
-    { id: "e2e_1", type: "bank_account", value: "1234567890",   bank: "BRI",  reports: 0, last_seen: daysAgo(5)  },
-    { id: "e2e_5", type: "bank_account", value: "e2elinkedacct", bank: "BNI", reports: 0, last_seen: daysAgo(3) },
-    { id: "e2e_2", type: "phone",        value: "08123456789",  bank: null,   reports: 0, last_seen: daysAgo(10) },
-    { id: "e2e_3", type: "ewallet",      value: "gopay:081234", bank: null,   reports: 0, last_seen: daysAgo(20) },
-    { id: "e2e_4", type: "domain",       value: "investasicepat.com", bank: null, reports: 0, last_seen: daysAgo(2) },
+    {
+      id: "e2e_1",
+      type: "bank_account",
+      value: "1234567890",
+      bank: "BRI",
+      reports: 0,
+      last_seen: daysAgo(5),
+    },
+    {
+      id: "e2e_5",
+      type: "bank_account",
+      value: "e2elinkedacct",
+      bank: "BNI",
+      reports: 0,
+      last_seen: daysAgo(3),
+    },
+    {
+      id: "e2e_2",
+      type: "phone",
+      value: "08123456789",
+      bank: null,
+      reports: 0,
+      last_seen: daysAgo(10),
+    },
+    {
+      id: "e2e_3",
+      type: "ewallet",
+      value: "gopay:081234",
+      bank: null,
+      reports: 0,
+      last_seen: daysAgo(20),
+    },
+    {
+      id: "e2e_4",
+      type: "domain",
+      value: "investasicepat.com",
+      bank: null,
+      reports: 0,
+      last_seen: daysAgo(2),
+    },
   ];
 
   // ── Connections (gives e2e_1 a network of 3 → networkScore = 24) ────────────
@@ -74,26 +111,47 @@ export async function POST(request: NextRequest) {
   const reportsForE2e1 = Array.from({ length: 15 }, (_, i) => ({
     id: `e2e_r1_${i}`,
     entity_id: "e2e_1",
-    type: i % 3 === 0 ? "Investasi Bodong" : i % 3 === 1 ? "Transfer Penipuan" : "Phishing",
+    type:
+      i % 3 === 0 ? "Investasi Bodong" : i % 3 === 1 ? "Transfer Penipuan" : "Phishing",
     amount: `Rp ${(i + 1) * 500_000}`,
     date: daysAgo(i),
     description: `E2E test report ${i + 1}: laporan penipuan untuk memastikan skor risiko tinggi.`,
   }));
 
   const reportsForOthers = [
-    { id: "e2e_r2_0", entity_id: "e2e_2", type: "Phishing",         amount: "Rp 1.000.000", date: today, description: "E2E test: SMS mengaku dari bank meminta kode OTP untuk verifikasi akun." },
-    { id: "e2e_r4_0", entity_id: "e2e_4", type: "Investasi Bodong", amount: "Rp 5.000.000", date: today, description: "E2E test: website investasi ilegal tanpa izin OJK menawarkan return tinggi." },
+    {
+      id: "e2e_r2_0",
+      entity_id: "e2e_2",
+      type: "Phishing",
+      amount: "Rp 1.000.000",
+      date: today,
+      description:
+        "E2E test: SMS mengaku dari bank meminta kode OTP untuk verifikasi akun.",
+    },
+    {
+      id: "e2e_r4_0",
+      entity_id: "e2e_4",
+      type: "Investasi Bodong",
+      amount: "Rp 5.000.000",
+      date: today,
+      description:
+        "E2E test: website investasi ilegal tanpa izin OJK menawarkan return tinggi.",
+    },
   ];
 
   const allReports = [...reportsForE2e1, ...reportsForOthers];
 
   try {
     // First delete any existing e2e data to start clean
-    const e2eIds = testEntities.map(e => e.id);
+    const e2eIds = testEntities.map((e) => e.id);
     await db.from("reports").delete().like("id", "e2e_%");
     await db.from("connections").delete().in("from_id", e2eIds);
     await db.from("entities").delete().in("id", e2eIds);
-    await db.from("entities").delete().eq("type", "bank_account").like("value", "99887766%");
+    await db
+      .from("entities")
+      .delete()
+      .eq("type", "bank_account")
+      .like("value", "99887766%");
 
     // Insert fresh
     const { error: eErr } = await db.from("entities").insert(testEntities);
@@ -107,7 +165,9 @@ export async function POST(request: NextRequest) {
 
     // Patch report counts to exact values (trigger may have incremented, this corrects it)
     const countMap: Record<string, number> = {};
-    allReports.forEach((r) => { countMap[r.entity_id] = (countMap[r.entity_id] ?? 0) + 1; });
+    allReports.forEach((r) => {
+      countMap[r.entity_id] = (countMap[r.entity_id] ?? 0) + 1;
+    });
     for (const [id, count] of Object.entries(countMap)) {
       await db.from("entities").update({ reports: count }).eq("id", id);
     }
@@ -134,9 +194,15 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const USE_SUPABASE = process.env.USE_SUPABASE === "true" || process.env.NEXT_PUBLIC_USE_SUPABASE === "true";
+  const USE_SUPABASE =
+    process.env.USE_SUPABASE === "true" ||
+    process.env.NEXT_PUBLIC_USE_SUPABASE === "true";
   if (!USE_SUPABASE) {
-    return NextResponse.json({ ok: true, mode: "seed-fallback", note: "Nothing to clean up" });
+    return NextResponse.json({
+      ok: true,
+      mode: "seed-fallback",
+      note: "Nothing to clean up",
+    });
   }
 
   const { supabaseAdmin } = await import("@/lib/supabase");
@@ -146,7 +212,11 @@ export async function DELETE(request: NextRequest) {
   await db.from("reports").delete().like("id", "e2e_%");
   await db.from("connections").delete().in("from_id", e2eIds);
   await db.from("entities").delete().in("id", e2eIds);
-  await db.from("entities").delete().eq("type", "bank_account").like("value", "99887766%");
+  await db
+    .from("entities")
+    .delete()
+    .eq("type", "bank_account")
+    .like("value", "99887766%");
 
   return NextResponse.json({ ok: true, mode: "supabase", cleaned: e2eIds });
 }

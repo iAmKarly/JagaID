@@ -40,9 +40,14 @@ function parseCsv(text: string): CsvRow[] {
 
 // ── Row validator ─────────────────────────────────────────────────────────────
 const VALID_SCAM_TYPES = new Set([
-  "Transfer Penipuan", "Investasi Bodong", "Phishing",
-  "COD Palsu", "Pinjol Ilegal", "Belanja Online",
-  "Lowongan Kerja Palsu", "Lainnya",
+  "Transfer Penipuan",
+  "Investasi Bodong",
+  "Phishing",
+  "COD Palsu",
+  "Pinjol Ilegal",
+  "Belanja Online",
+  "Lowongan Kerja Palsu",
+  "Lainnya",
 ]);
 
 function mapScamType(raw: string | undefined): string {
@@ -61,7 +66,13 @@ function mapEntityType(raw: string): "bank_account" | "phone" | "ewallet" | "dom
   if (parsed.success) return parsed.data;
   const v = raw.toLowerCase().replace(/\s+/g, "_");
   if (v.includes("phone") || v.includes("hp") || v.includes("telp")) return "phone";
-  if (v.includes("wallet") || v.includes("ewallet") || v.includes("gopay") || v.includes("ovo")) return "ewallet";
+  if (
+    v.includes("wallet") ||
+    v.includes("ewallet") ||
+    v.includes("gopay") ||
+    v.includes("ovo")
+  )
+    return "ewallet";
   if (v.includes("domain") || v.includes("url") || v.includes("web")) return "domain";
   return "bank_account";
 }
@@ -82,7 +93,10 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const file = formData.get("file");
     if (!file || typeof file === "string") {
-      return NextResponse.json({ error: "No file uploaded — send field name 'file'" }, { status: 400 });
+      return NextResponse.json(
+        { error: "No file uploaded — send field name 'file'" },
+        { status: 400 }
+      );
     }
     csvText = await (file as File).text();
   } else {
@@ -187,9 +201,7 @@ export async function POST(request: NextRequest) {
       }));
 
     if (reportInserts.length > 0) {
-      const { error: reportError } = await db
-        .from("reports")
-        .insert(reportInserts);
+      const { error: reportError } = await db.from("reports").insert(reportInserts);
 
       if (reportError) {
         errors.push(`Reports batch ${i / BATCH_SIZE + 1}: ${reportError.message}`);
@@ -201,14 +213,17 @@ export async function POST(request: NextRequest) {
     entitiesProcessed += entityInserts.length;
   }
 
-  return NextResponse.json({
-    success: true,
-    summary: {
-      total_rows: rows.length,
-      entities_processed: entitiesProcessed,
-      reports_added: reportsAdded,
-      skipped,
-      errors: errors.length > 0 ? errors : undefined,
+  return NextResponse.json(
+    {
+      success: true,
+      summary: {
+        total_rows: rows.length,
+        entities_processed: entitiesProcessed,
+        reports_added: reportsAdded,
+        skipped,
+        errors: errors.length > 0 ? errors : undefined,
+      },
     },
-  }, { status: 200 });
+    { status: 200 }
+  );
 }

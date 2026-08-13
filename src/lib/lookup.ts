@@ -29,26 +29,17 @@ export function matchesEntity(entity: Entity, query: string): boolean {
   return normalizeQuery(entity.value) === normalizeQuery(query);
 }
 
-export function findEntity(
-  query: string,
-  db: Database
-): Entity | undefined {
+export function findEntity(query: string, db: Database): Entity | undefined {
   const q = normalizeQuery(query);
   if (!q) return undefined;
   return db.entities.find((e) => matchesEntity(e, q));
 }
 
-export function getEntityReports(
-  entityId: string,
-  db: Database
-): Report[] {
+export function getEntityReports(entityId: string, db: Database): Report[] {
   return db.reports.filter((r) => r.entity_id === entityId);
 }
 
-export function getEntityNetwork(
-  entity: Entity,
-  db: Database
-): EntityWithRisk[] {
+export function getEntityNetwork(entity: Entity, db: Database): EntityWithRisk[] {
   // Each network member's risk is computed at retrieval time so the client
   // never has to reach for calcRisk. In Supabase mode the equivalent shape is
   // produced from the entity_risk_summary view.

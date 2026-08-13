@@ -29,14 +29,12 @@ export async function POST(request: NextRequest) {
   // Per-IP-per-entity rate limit. Use the *normalised* value so different
   // formats of the same number all collapse into one bucket.
   const ip = getClientIp(request);
-  const rl = rateLimit(
-    `report:${ip}:${parsed.data.value}`,
-    REPORT_MAX,
-    REPORT_WINDOW_MS
-  );
+  const rl = rateLimit(`report:${ip}:${parsed.data.value}`, REPORT_MAX, REPORT_WINDOW_MS);
   if (!rl.ok) {
     return NextResponse.json(
-      { error: "Terlalu banyak laporan untuk entitas ini dari IP Anda. Coba lagi nanti." },
+      {
+        error: "Terlalu banyak laporan untuk entitas ini dari IP Anda. Coba lagi nanti.",
+      },
       {
         status: 429,
         headers: {

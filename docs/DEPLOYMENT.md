@@ -55,15 +55,15 @@ Framework: **Next.js** (auto-detected).
 
 Before clicking Deploy, add these for the **Production** environment:
 
-| Name | Value |
-|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | `https://xxxxx.supabase.co` |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | anon JWT or `sb_publishable_*` token |
-| `SUPABASE_SERVICE_ROLE_KEY` | service_role JWT or `sb_secret_*` token |
-| `NEXT_PUBLIC_USE_SUPABASE` | `true` |
-| `ADMIN_UPLOAD_KEY` | Generate with: `openssl rand -hex 32` |
-| `ALLOWED_ORIGIN` | (Optional) `https://your-domain.com` — only set if you need cross-origin API access from a different domain. Leave unset for same-origin only |
-| `NEXT_PUBLIC_APP_URL` | (Optional) `https://your-domain.com` — fallback origin used in the WhatsApp share text when `window.location.origin` isn't available |
+| Name                            | Value                                                                                                                                         |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | `https://xxxxx.supabase.co`                                                                                                                   |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | anon JWT or `sb_publishable_*` token                                                                                                          |
+| `SUPABASE_SERVICE_ROLE_KEY`     | service_role JWT or `sb_secret_*` token                                                                                                       |
+| `NEXT_PUBLIC_USE_SUPABASE`      | `true`                                                                                                                                        |
+| `ADMIN_UPLOAD_KEY`              | Generate with: `openssl rand -hex 32`                                                                                                         |
+| `ALLOWED_ORIGIN`                | (Optional) `https://your-domain.com` — only set if you need cross-origin API access from a different domain. Leave unset for same-origin only |
+| `NEXT_PUBLIC_APP_URL`           | (Optional) `https://your-domain.com` — fallback origin used in the WhatsApp share text when `window.location.origin` isn't available          |
 
 Make sure all variables are set for the **Production** environment (not just Preview or Development). Each Preview branch picks up Production env vars by default, but you can override per-environment if needed.
 
@@ -168,18 +168,18 @@ Or keep `NEXT_PUBLIC_USE_SUPABASE=false` locally to develop against seed data wi
 
 ## Environment variable reference
 
-| Variable | Required | Server/Client | Description |
-|---|---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Yes (prod) | Both | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes (prod) | Both | anon JWT or `sb_publishable_*` token |
-| `SUPABASE_SERVICE_ROLE_KEY` | Yes (prod) | Server only | service_role JWT or `sb_secret_*` token. After migration 002, this is the only key allowed to write |
-| `USE_SUPABASE` | E2E only | Server only | Runtime switch read by `db.ts` on every request. Set in `.env.test` for local Supabase e2e |
-| `NEXT_PUBLIC_USE_SUPABASE` | Yes (prod) | Both | Build-time switch baked into the client bundle. Must be `"true"` to use Supabase |
-| `ADMIN_UPLOAD_KEY` | Yes (prod) | Server only | Protects `/admin/*` and `/api/admin/*`. Sent via `x-admin-key` header |
-| `E2E_SEED_KEY` | E2E only | Server only | Protects `/api/e2e-seed`. Sent via `x-e2e-key` header |
-| `ALLOWED_ORIGIN` | Optional | Server only | Production cross-origin allowlist (single domain). Unset = same-origin only |
-| `NEXT_PUBLIC_APP_URL` | Optional | Both | Fallback origin used in WhatsApp share text |
-| `SCRAPER_CONTACT_EMAIL` | Optional | Server only | Contact email injected into the OJK scraper's User-Agent |
+| Variable                        | Required   | Server/Client | Description                                                                                         |
+| ------------------------------- | ---------- | ------------- | --------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Yes (prod) | Both          | Supabase project URL                                                                                |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes (prod) | Both          | anon JWT or `sb_publishable_*` token                                                                |
+| `SUPABASE_SERVICE_ROLE_KEY`     | Yes (prod) | Server only   | service_role JWT or `sb_secret_*` token. After migration 002, this is the only key allowed to write |
+| `USE_SUPABASE`                  | E2E only   | Server only   | Runtime switch read by `db.ts` on every request. Set in `.env.test` for local Supabase e2e          |
+| `NEXT_PUBLIC_USE_SUPABASE`      | Yes (prod) | Both          | Build-time switch baked into the client bundle. Must be `"true"` to use Supabase                    |
+| `ADMIN_UPLOAD_KEY`              | Yes (prod) | Server only   | Protects `/admin/*` and `/api/admin/*`. Sent via `x-admin-key` header                               |
+| `E2E_SEED_KEY`                  | E2E only   | Server only   | Protects `/api/e2e-seed`. Sent via `x-e2e-key` header                                               |
+| `ALLOWED_ORIGIN`                | Optional   | Server only   | Production cross-origin allowlist (single domain). Unset = same-origin only                         |
+| `NEXT_PUBLIC_APP_URL`           | Optional   | Both          | Fallback origin used in WhatsApp share text                                                         |
+| `SCRAPER_CONTACT_EMAIL`         | Optional   | Server only   | Contact email injected into the OJK scraper's User-Agent                                            |
 
 Variables prefixed `NEXT_PUBLIC_` are included in the client-side JavaScript bundle. Do not put secrets in `NEXT_PUBLIC_` variables.
 

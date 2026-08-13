@@ -6,14 +6,20 @@ const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN ?? "";
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-  { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
+  {
+    key: "Strict-Transport-Security",
+    value: "max-age=63072000; includeSubDomains; preload",
+  },
 ];
 
 const corsHeaders = ALLOWED_ORIGIN
   ? [
       { key: "Access-Control-Allow-Origin", value: ALLOWED_ORIGIN },
       { key: "Access-Control-Allow-Methods", value: "GET, POST, DELETE, OPTIONS" },
-      { key: "Access-Control-Allow-Headers", value: "Content-Type, x-admin-key, x-e2e-key" },
+      {
+        key: "Access-Control-Allow-Headers",
+        value: "Content-Type, x-admin-key, x-e2e-key",
+      },
       { key: "Vary", value: "Origin" },
     ]
   : [];

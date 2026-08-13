@@ -12,16 +12,16 @@ JagaID is an anti-fraud intelligence platform for Indonesia. Anyone can check wh
 
 ## Tech stack
 
-| Layer | Choice |
-|---|---|
-| Framework | Next.js 14 (App Router) |
-| Language | TypeScript (strict) |
-| Database | Supabase (PostgreSQL) |
-| Validation | Zod |
-| Unit tests | Jest + ts-jest |
-| E2E tests | Playwright |
-| Deployment | Vercel |
-| Styling | Inline React styles (no CSS framework) |
+| Layer      | Choice                                 |
+| ---------- | -------------------------------------- |
+| Framework  | Next.js 14 (App Router)                |
+| Language   | TypeScript (strict)                    |
+| Database   | Supabase (PostgreSQL)                  |
+| Validation | Zod                                    |
+| Unit tests | Jest + ts-jest                         |
+| E2E tests  | Playwright                             |
+| Deployment | Vercel                                 |
+| Styling    | Inline React styles (no CSS framework) |
 
 ---
 
@@ -195,6 +195,7 @@ AMAN            < 20
 ### Values are normalized everywhere
 
 `normalizeQuery(s)` (in `src/lib/lookup.ts`) trims, lowercases, strips URL prefix (`http(s)://`, leading `www.`), strips path/query/hash, then strips whitespace and `-`. Applied at three boundaries:
+
 1. **Validators** (`ReportPayloadSchema.value`, `LookupQuerySchema.q`) via `.transform(normalizeQuery)` — every API request comes through normalized.
 2. **`db.ts` writes** — `dbSubmitReport` stores values normalized.
 3. **Admin upload** (`api/admin/upload/route.ts`) — CSV rows normalized before insert.
@@ -218,6 +219,7 @@ The `Entity` type has `connected: string[]` but this is assembled at query time 
 ### Source and confidence on every row
 
 Every entity and every report carries:
+
 - `source` — `community` (default), `admin`, `ojk-alert`, `ojk-swi`, `patrolisiber`, `manual-csv`, `scrape`
 - `confidence` — 0–100; community submissions are 100, admin CSV imports 90, OJK alert portal 60, OJK SWI body-text extraction 30, etc.
 
@@ -244,6 +246,7 @@ Production    NEXT_PUBLIC_USE_SUPABASE=true    Supabase PROD project
 ### Security headers and CSP nonces
 
 `next.config.js` still ships these static headers on every response:
+
 - `X-Content-Type-Options: nosniff`
 - `Referrer-Policy: strict-origin-when-cross-origin`
 - `Strict-Transport-Security: max-age=63072000; includeSubDomains; preload`
@@ -255,6 +258,7 @@ Production    NEXT_PUBLIC_USE_SUPABASE=true    Supabase PROD project
 `connect-src` is `'self'` only (and `ws://localhost:*` in dev). The browser never talks to Supabase directly — all DB access is server-side. Fonts are self-hosted via `next/font/google`, so `font-src` needs only `'self'`.
 
 CORS for `/api/*` is **opt-in** via `ALLOWED_ORIGIN`:
+
 - If unset → no `Access-Control-Allow-Origin` headers; only same-origin requests work (the desired default).
 - If set (e.g. `https://jagaid.app`) → headers and `src/middleware.ts` allow that single origin to send `OPTIONS` preflight + `GET/POST/DELETE` with `Content-Type`, `x-admin-key`, `x-e2e-key`.
 
@@ -272,18 +276,18 @@ Admin and e2e key comparisons use `lib/auth.ts:safeEqual` (wraps `crypto.timingS
 
 ### `.env.local` — local development and production
 
-| Variable | Used by | Notes |
-|---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | `supabase.ts` | Project URL from Supabase dashboard |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `supabase.ts` | Public key — accepts legacy `anon` JWT or new `sb_publishable_*` opaque token |
-| `SUPABASE_SERVICE_ROLE_KEY` | `supabase.ts` admin | Server-only — accepts legacy `service_role` JWT or new `sb_secret_*` opaque token. Never expose to browser |
-| `USE_SUPABASE` | `db.ts` (server-only) | Runtime switch — set in `.env.test` for local e2e, no rebuild needed |
-| `NEXT_PUBLIC_USE_SUPABASE` | `db.ts` (build-time) | Baked into bundle at build — set in Vercel for production |
-| `ADMIN_UPLOAD_KEY` | admin routes | Protects `/admin/upload` and `/api/admin/*` (sent via `x-admin-key` header). Compared with constant-time `safeEqual` |
-| `E2E_SEED_KEY` | `e2e-seed` route | Used by e2e to seed test fixtures (sent via `x-e2e-key` header) |
-| `ALLOWED_ORIGIN` | `next.config.js`, `middleware.ts` | Production CORS origin (e.g. `https://jagaid.app`). If unset, API stays same-origin only |
-| `NEXT_PUBLIC_APP_URL` | `App.tsx` (WhatsApp share) | Fallback origin for share text when `window.location.origin` isn't available (SSR/share link) |
-| `IP_HASH_SALT` | `lib/client-ip.ts` | Server-side salt for SHA-256 hashing of submitter IPs. Set in prod; fallback works in dev |
+| Variable                        | Used by                           | Notes                                                                                                                |
+| ------------------------------- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | `supabase.ts`                     | Project URL from Supabase dashboard                                                                                  |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `supabase.ts`                     | Public key — accepts legacy `anon` JWT or new `sb_publishable_*` opaque token                                        |
+| `SUPABASE_SERVICE_ROLE_KEY`     | `supabase.ts` admin               | Server-only — accepts legacy `service_role` JWT or new `sb_secret_*` opaque token. Never expose to browser           |
+| `USE_SUPABASE`                  | `db.ts` (server-only)             | Runtime switch — set in `.env.test` for local e2e, no rebuild needed                                                 |
+| `NEXT_PUBLIC_USE_SUPABASE`      | `db.ts` (build-time)              | Baked into bundle at build — set in Vercel for production                                                            |
+| `ADMIN_UPLOAD_KEY`              | admin routes                      | Protects `/admin/upload` and `/api/admin/*` (sent via `x-admin-key` header). Compared with constant-time `safeEqual` |
+| `E2E_SEED_KEY`                  | `e2e-seed` route                  | Used by e2e to seed test fixtures (sent via `x-e2e-key` header)                                                      |
+| `ALLOWED_ORIGIN`                | `next.config.js`, `middleware.ts` | Production CORS origin (e.g. `https://jagaid.app`). If unset, API stays same-origin only                             |
+| `NEXT_PUBLIC_APP_URL`           | `App.tsx` (WhatsApp share)        | Fallback origin for share text when `window.location.origin` isn't available (SSR/share link)                        |
+| `IP_HASH_SALT`                  | `lib/client-ip.ts`                | Server-side salt for SHA-256 hashing of submitter IPs. Set in prod; fallback works in dev                            |
 
 ### `.env.test` — test Supabase project only
 
@@ -326,12 +330,15 @@ npm run data:refresh          scrape:ojk + import:ojk in one command
 ## Test environments explained
 
 ### `npm test` / `npm run test:all`
+
 Runs entirely in-memory. No browser, no DB, no network. Always works on any machine. Unit tests cover `risk.ts`, `lookup.ts`, `validators.ts`, `supabase.ts`, `db.ts`. Integration tests cover all API route logic.
 
 ### `npm run test:e2e`
+
 Playwright browser tests. Starts the dev server automatically with `NEXT_PUBLIC_USE_SUPABASE=false` — always uses SEED_DB regardless of what's in `.env.local`. Requires Playwright browsers: `npx playwright install chromium`.
 
 ### `npm run test:e2e:supabase`
+
 Playwright browser tests against a real Supabase DB. Loads `.env.test`, validates you're not using prod credentials, starts the dev server pointed at the test DB. The `beforeAll` in the spec calls `POST /api/e2e-seed` to insert known test fixtures before tests run. `global-teardown.ts` cleans them after. Requires `.env.test` to be set up — see README.
 
 ---
@@ -339,6 +346,7 @@ Playwright browser tests against a real Supabase DB. Loads `.env.test`, validate
 ## Data pipeline
 
 **Full reset and fresh data import:**
+
 ```bash
 npm run reset:db          # type "yes" to confirm — wipes all rows
 npm run scrape:ojk        # scrapes OJK → data/ojk-scraped.json
@@ -349,12 +357,14 @@ npm run import:ojk        # pushes to Supabase, idempotent
 `npm run import:ojk` reads `data/ojk-scraped.json` when present and falls back to `data/manual.csv` when the JSON file is absent. Add `-- --test` to DB scripts to load `.env.test`.
 
 **Add new data without wiping:**
+
 ```bash
 npm run scrape:ojk
 npm run import:ojk        # safe to re-run anytime — duplicates ignored
 ```
 
 **Manual CSV format** (`data/manual.csv`):
+
 ```
 type,value,bank,scam_type
 domain,investasi-bodong.com,,Investasi Bodong
@@ -366,19 +376,19 @@ phone,08123456789,,Phishing
 
 ## Test coverage
 
-| File | Tests | Suite |
-|---|---|---|
-| `lib/risk.ts` | 21 | `tests/unit/risk.test.ts` |
-| `lib/risk.ts` ↔ SQL view parity | 6 | `tests/unit/risk-parity.test.ts` |
-| `lib/lookup.ts` | 29 | `tests/unit/lookup.test.ts` |
-| `lib/validators.ts` | 20 | `tests/unit/validators.test.ts` |
-| `lib/supabase.ts` | 8 | `tests/unit/supabase.test.ts` |
-| `lib/db.ts` | 16 | `tests/unit/db.test.ts` |
-| `lib/rate-limit.ts` | 7 | `tests/unit/rate-limit.test.ts` |
-| `lib/auth.ts` | 8 | `tests/unit/auth.test.ts` |
-| `/api/check` + `/api/report` | 12 | `tests/integration/api.test.ts` |
-| All routes + CSV + auth guard | 43 | `tests/integration/routes.test.ts` |
-| App UI (3 tabs + admin) | 30 | `tests/e2e/app.spec.ts` |
+| File                            | Tests | Suite                              |
+| ------------------------------- | ----- | ---------------------------------- |
+| `lib/risk.ts`                   | 21    | `tests/unit/risk.test.ts`          |
+| `lib/risk.ts` ↔ SQL view parity | 6     | `tests/unit/risk-parity.test.ts`   |
+| `lib/lookup.ts`                 | 29    | `tests/unit/lookup.test.ts`        |
+| `lib/validators.ts`             | 20    | `tests/unit/validators.test.ts`    |
+| `lib/supabase.ts`               | 8     | `tests/unit/supabase.test.ts`      |
+| `lib/db.ts`                     | 16    | `tests/unit/db.test.ts`            |
+| `lib/rate-limit.ts`             | 7     | `tests/unit/rate-limit.test.ts`    |
+| `lib/auth.ts`                   | 8     | `tests/unit/auth.test.ts`          |
+| `/api/check` + `/api/report`    | 12    | `tests/integration/api.test.ts`    |
+| All routes + CSV + auth guard   | 43    | `tests/integration/routes.test.ts` |
+| App UI (3 tabs + admin)         | 30    | `tests/e2e/app.spec.ts`            |
 
 **Total: 170 unit/integration + 30 e2e**
 
@@ -402,6 +412,7 @@ Partial unique index `idx_reports_dedup` on `(entity_id, submitter_ip_hash, date
 **RLS policies** (after migration 002): public read on all three tables; **inserts restricted to the `service_role` Postgres role**. Server-side `supabaseAdmin()` (with the service-role / `sb_secret_*` key) is the only path that can write. The browser `anon` key cannot insert.
 
 Migration files (apply in order):
+
 - `supabase/migrations/001_initial_schema.sql` — tables, indexes, triggers, initial RLS, initial view
 - `supabase/migrations/002_fix_risk_and_constraints.sql` — UNIQUE(type, value), service_role-only RLS, view formula matching `lib/risk.ts`
 - `supabase/migrations/003_indexes_source_dedup.sql` — `idx_entities_value` (real index for `WHERE value = q`), `source`/`confidence` cols, `submitter_ip_hash` + dedup index, view exposes new cols

@@ -37,12 +37,54 @@ const daysAgo = (n: number) =>
   new Date(TODAY.getTime() - n * 86_400_000).toISOString().split("T")[0];
 
 const ENTITIES = [
-  { id: "e1", type: "bank_account", value: "1234567890",        bank: "BRI",     reports: 0, last_seen: daysAgo(5)   },
-  { id: "e2", type: "phone",        value: "08123456789",        bank: null,      reports: 0, last_seen: daysAgo(10)  },
-  { id: "e3", type: "ewallet",      value: "gopay:08123456789",  bank: null,      reports: 0, last_seen: daysAgo(45)  },
-  { id: "e4", type: "bank_account", value: "9876543210",         bank: "BCA",     reports: 0, last_seen: daysAgo(100) },
-  { id: "e5", type: "domain",       value: "investasicepat.com", bank: null,      reports: 0, last_seen: daysAgo(2)   },
-  { id: "e6", type: "bank_account", value: "1111111111",         bank: "Mandiri", reports: 0, last_seen: daysAgo(200) },
+  {
+    id: "e1",
+    type: "bank_account",
+    value: "1234567890",
+    bank: "BRI",
+    reports: 0,
+    last_seen: daysAgo(5),
+  },
+  {
+    id: "e2",
+    type: "phone",
+    value: "08123456789",
+    bank: null,
+    reports: 0,
+    last_seen: daysAgo(10),
+  },
+  {
+    id: "e3",
+    type: "ewallet",
+    value: "gopay:08123456789",
+    bank: null,
+    reports: 0,
+    last_seen: daysAgo(45),
+  },
+  {
+    id: "e4",
+    type: "bank_account",
+    value: "9876543210",
+    bank: "BCA",
+    reports: 0,
+    last_seen: daysAgo(100),
+  },
+  {
+    id: "e5",
+    type: "domain",
+    value: "investasicepat.com",
+    bank: null,
+    reports: 0,
+    last_seen: daysAgo(2),
+  },
+  {
+    id: "e6",
+    type: "bank_account",
+    value: "1111111111",
+    bank: "Mandiri",
+    reports: 0,
+    last_seen: daysAgo(200),
+  },
 ];
 
 // Connections: graph edges between entities
@@ -54,15 +96,79 @@ const CONNECTIONS = [
 
 // Reports: inserting these rows triggers the DB counter on entities
 const REPORTS = [
-  { id: "r1", entity_id: "e1", type: "Transfer Penipuan", amount: "Rp 2.500.000",  date: "2024-12-01", description: "Modus COD palsu, barang tidak dikirim setelah transfer." },
-  { id: "r2", entity_id: "e1", type: "Investasi Bodong",  amount: "Rp 15.000.000", date: "2024-11-25", description: "Iming-iming profit 30% per bulan lalu kabur setelah kumpulkan dana." },
-  { id: "r3", entity_id: "e1", type: "Transfer Penipuan", amount: "Rp 500.000",    date: "2024-11-20", description: "Penjual online tidak mengirim barang setelah pembayaran diterima." },
-  { id: "r4", entity_id: "e2", type: "Phishing",          amount: "Rp 5.000.000",  date: "2024-11-28", description: "SMS mengaku dari bank meminta kode OTP untuk verifikasi akun." },
-  { id: "r5", entity_id: "e2", type: "Phishing",          amount: "Rp 2.000.000",  date: "2024-11-15", description: "WhatsApp mengaku CS bank, meminta data kartu dan OTP." },
-  { id: "r6", entity_id: "e3", type: "Transfer Penipuan", amount: "Rp 1.200.000",  date: "2024-10-30", description: "Dompet digital digunakan untuk terima pembayaran jual beli fiktif." },
-  { id: "r7", entity_id: "e4", type: "Investasi Bodong",  amount: "Rp 8.000.000",  date: "2024-09-10", description: "Rekening dipakai untuk tampung dana investasi bodong berbunga tinggi." },
-  { id: "r8", entity_id: "e5", type: "Investasi Bodong",  amount: "Rp 50.000.000", date: "2024-12-05", description: "Website menawarkan investasi saham dengan return 20% per bulan, tidak ada izin OJK." },
-  { id: "r9", entity_id: "e5", type: "Phishing",          amount: "Rp 3.000.000",  date: "2024-11-30", description: "Situs meniru tampilan bank resmi, mencuri kredensial login." },
+  {
+    id: "r1",
+    entity_id: "e1",
+    type: "Transfer Penipuan",
+    amount: "Rp 2.500.000",
+    date: "2024-12-01",
+    description: "Modus COD palsu, barang tidak dikirim setelah transfer.",
+  },
+  {
+    id: "r2",
+    entity_id: "e1",
+    type: "Investasi Bodong",
+    amount: "Rp 15.000.000",
+    date: "2024-11-25",
+    description: "Iming-iming profit 30% per bulan lalu kabur setelah kumpulkan dana.",
+  },
+  {
+    id: "r3",
+    entity_id: "e1",
+    type: "Transfer Penipuan",
+    amount: "Rp 500.000",
+    date: "2024-11-20",
+    description: "Penjual online tidak mengirim barang setelah pembayaran diterima.",
+  },
+  {
+    id: "r4",
+    entity_id: "e2",
+    type: "Phishing",
+    amount: "Rp 5.000.000",
+    date: "2024-11-28",
+    description: "SMS mengaku dari bank meminta kode OTP untuk verifikasi akun.",
+  },
+  {
+    id: "r5",
+    entity_id: "e2",
+    type: "Phishing",
+    amount: "Rp 2.000.000",
+    date: "2024-11-15",
+    description: "WhatsApp mengaku CS bank, meminta data kartu dan OTP.",
+  },
+  {
+    id: "r6",
+    entity_id: "e3",
+    type: "Transfer Penipuan",
+    amount: "Rp 1.200.000",
+    date: "2024-10-30",
+    description: "Dompet digital digunakan untuk terima pembayaran jual beli fiktif.",
+  },
+  {
+    id: "r7",
+    entity_id: "e4",
+    type: "Investasi Bodong",
+    amount: "Rp 8.000.000",
+    date: "2024-09-10",
+    description: "Rekening dipakai untuk tampung dana investasi bodong berbunga tinggi.",
+  },
+  {
+    id: "r8",
+    entity_id: "e5",
+    type: "Investasi Bodong",
+    amount: "Rp 50.000.000",
+    date: "2024-12-05",
+    description:
+      "Website menawarkan investasi saham dengan return 20% per bulan, tidak ada izin OJK.",
+  },
+  {
+    id: "r9",
+    entity_id: "e5",
+    type: "Phishing",
+    amount: "Rp 3.000.000",
+    date: "2024-11-30",
+    description: "Situs meniru tampilan bank resmi, mencuri kredensial login.",
+  },
 ];
 
 // ── Supabase REST helper ───────────────────────────────────────────────────
@@ -81,7 +187,7 @@ async function upsert(
       apikey: SUPABASE_KEY!,
       Authorization: `Bearer ${SUPABASE_KEY}`,
       "Content-Type": "application/json",
-      "Prefer": `resolution=${mode},return=minimal`,
+      Prefer: `resolution=${mode},return=minimal`,
     },
     body: JSON.stringify(rows),
   });
@@ -119,19 +225,16 @@ async function recalcReportCounts(): Promise<void> {
   }
 
   for (const [entityId, count] of Object.entries(countMap)) {
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/entities?id=eq.${entityId}`,
-      {
-        method: "PATCH",
-        headers: {
-          apikey: SUPABASE_KEY!,
-          Authorization: `Bearer ${SUPABASE_KEY}`,
-          "Content-Type": "application/json",
-          "Prefer": "return=minimal",
-        },
-        body: JSON.stringify({ reports: count }),
-      }
-    );
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/entities?id=eq.${entityId}`, {
+      method: "PATCH",
+      headers: {
+        apikey: SUPABASE_KEY!,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+        "Content-Type": "application/json",
+        Prefer: "return=minimal",
+      },
+      body: JSON.stringify({ reports: count }),
+    });
     if (!res.ok) {
       const body = await res.text();
       throw new Error(`[seed] Failed to patch report count for ${entityId}: ${body}`);

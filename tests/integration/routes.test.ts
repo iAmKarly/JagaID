@@ -32,28 +32,36 @@ function simulateReport(payload: unknown, db: Database) {
   const data = parsed.data as ReportPayload;
   const newDb: Database = { entities: [...db.entities], reports: [...db.reports] };
   const normalized = normalizeQuery(data.value);
-  const existing = newDb.entities.find(
-    (e) => normalizeQuery(e.value) === normalized
-  );
+  const existing = newDb.entities.find((e) => normalizeQuery(e.value) === normalized);
   let entityId: string;
   if (existing) {
     entityId = existing.id;
     newDb.entities = newDb.entities.map((e) =>
       e.id === existing.id
-        ? { ...e, reports: e.reports + 1, last_seen: new Date().toISOString().split("T")[0] }
+        ? {
+            ...e,
+            reports: e.reports + 1,
+            last_seen: new Date().toISOString().split("T")[0],
+          }
         : e
     );
   } else {
     entityId = `e_${Date.now()}`;
     newDb.entities.push({
-      id: entityId, type: data.type, value: normalized,
-      bank: data.bank, reports: 1, connected: [],
+      id: entityId,
+      type: data.type,
+      value: normalized,
+      bank: data.bank,
+      reports: 1,
+      connected: [],
       last_seen: new Date().toISOString().split("T")[0],
     });
   }
   newDb.reports.push({
-    id: `r_${Date.now()}`, entity_id: entityId,
-    type: data.scam_type, amount: data.amount,
+    id: `r_${Date.now()}`,
+    entity_id: entityId,
+    type: data.scam_type,
+    amount: data.amount,
     date: new Date().toISOString().split("T")[0],
     description: data.description,
   });
@@ -112,7 +120,11 @@ describe("GET /api/check", () => {
   it("returns 200 found=true for known bank account", () => {
     const res = simulateCheck("1234567890", SEED_DB);
     expect(res.status).toBe(200);
-    const body = res.body as { found: boolean; entity?: { value: string }; risk?: { score: number } };
+    const body = res.body as {
+      found: boolean;
+      entity?: { value: string };
+      risk?: { score: number };
+    };
     expect(body.found).toBe(true);
     expect(body.entity?.value).toBe("1234567890");
     expect(body.risk?.score).toBeGreaterThan(0);
@@ -153,7 +165,9 @@ describe("GET /api/check", () => {
   it("risk label is a valid value", () => {
     const res = simulateCheck("1234567890", SEED_DB);
     const body = res.body as { risk?: { label: string } };
-    expect(["BAHAYA TINGGI", "MENCURIGAKAN", "WASPADA", "AMAN"]).toContain(body.risk!.label);
+    expect(["BAHAYA TINGGI", "MENCURIGAKAN", "WASPADA", "AMAN"]).toContain(
+      body.risk!.label
+    );
   });
 });
 
@@ -183,7 +197,9 @@ describe("POST /api/report", () => {
   });
 
   it("returns 422 for description under 10 chars", () => {
-    expect(simulateReport({ ...validPayload, description: "Penipuan" }, SEED_DB).status).toBe(422);
+    expect(
+      simulateReport({ ...validPayload, description: "Penipuan" }, SEED_DB).status
+    ).toBe(422);
   });
 
   it("returns 422 for value under 5 chars", () => {
@@ -191,15 +207,22 @@ describe("POST /api/report", () => {
   });
 
   it("returns 422 for invalid entity type", () => {
-    expect(simulateReport({ ...validPayload, type: "bitcoin" }, SEED_DB).status).toBe(422);
+    expect(simulateReport({ ...validPayload, type: "bitcoin" }, SEED_DB).status).toBe(
+      422
+    );
   });
 
   it("returns 422 for invalid scam type", () => {
-    expect(simulateReport({ ...validPayload, scam_type: "Modus Alien" }, SEED_DB).status).toBe(422);
+    expect(
+      simulateReport({ ...validPayload, scam_type: "Modus Alien" }, SEED_DB).status
+    ).toBe(422);
   });
 
   it("returns 201 for valid new entity", () => {
-    const db: Database = { entities: [...SEED_DB.entities], reports: [...SEED_DB.reports] };
+    const db: Database = {
+      entities: [...SEED_DB.entities],
+      reports: [...SEED_DB.reports],
+    };
     const res = simulateReport(validPayload, db);
     expect(res.status).toBe(201);
     expect((res.body as { success: boolean }).success).toBe(true);
@@ -207,48 +230,81 @@ describe("POST /api/report", () => {
   });
 
   it("new entity is added to database", () => {
-    const db: Database = { entities: [...SEED_DB.entities], reports: [...SEED_DB.reports] };
+    const db: Database = {
+      entities: [...SEED_DB.entities],
+      reports: [...SEED_DB.reports],
+    };
     const before = db.entities.length;
-    const res = simulateReport(validPayload, db) as { status: number; body: object; db: Database };
+    const res = simulateReport(validPayload, db) as {
+      status: number;
+      body: object;
+      db: Database;
+    };
     expect(res.db.entities.length).toBe(before + 1);
   });
 
   it("returns entity_id of existing entity when value matches", () => {
-    const db: Database = { entities: [...SEED_DB.entities], reports: [...SEED_DB.reports] };
-    const res = simulateReport(
-      { ...validPayload, value: "1234567890" },
-      db
-    ) as { status: number; body: { entity_id: string }; db: Database };
+    const db: Database = {
+      entities: [...SEED_DB.entities],
+      reports: [...SEED_DB.reports],
+    };
+    const res = simulateReport({ ...validPayload, value: "1234567890" }, db) as {
+      status: number;
+      body: { entity_id: string };
+      db: Database;
+    };
     expect(res.body.entity_id).toBe("e1");
   });
 
   it("increments report count on existing entity", () => {
-    const db: Database = { entities: [...SEED_DB.entities], reports: [...SEED_DB.reports] };
+    const db: Database = {
+      entities: [...SEED_DB.entities],
+      reports: [...SEED_DB.reports],
+    };
     const before = db.entities.find((e) => e.id === "e1")!.reports;
-    const res = simulateReport(
-      { ...validPayload, value: "1234567890" },
-      db
-    ) as { status: number; body: object; db: Database };
+    const res = simulateReport({ ...validPayload, value: "1234567890" }, db) as {
+      status: number;
+      body: object;
+      db: Database;
+    };
     const after = res.db.entities.find((e) => e.id === "e1")!.reports;
     expect(after).toBe(before + 1);
   });
 
   it("adds a report row on success", () => {
-    const db: Database = { entities: [...SEED_DB.entities], reports: [...SEED_DB.reports] };
+    const db: Database = {
+      entities: [...SEED_DB.entities],
+      reports: [...SEED_DB.reports],
+    };
     const before = db.reports.length;
-    const res = simulateReport(validPayload, db) as { status: number; body: object; db: Database };
+    const res = simulateReport(validPayload, db) as {
+      status: number;
+      body: object;
+      db: Database;
+    };
     expect(res.db.reports.length).toBe(before + 1);
   });
 
   it("accepts all valid scam types", () => {
     const types = [
-      "Transfer Penipuan", "Investasi Bodong", "Phishing",
-      "COD Palsu", "Pinjol Ilegal", "Belanja Online",
-      "Lowongan Kerja Palsu", "Lainnya",
+      "Transfer Penipuan",
+      "Investasi Bodong",
+      "Phishing",
+      "COD Palsu",
+      "Pinjol Ilegal",
+      "Belanja Online",
+      "Lowongan Kerja Palsu",
+      "Lainnya",
     ] as const;
     types.forEach((scam_type) => {
-      const db: Database = { entities: [...SEED_DB.entities], reports: [...SEED_DB.reports] };
-      const res = simulateReport({ ...validPayload, value: `777777${scam_type.length}`, scam_type }, db);
+      const db: Database = {
+        entities: [...SEED_DB.entities],
+        reports: [...SEED_DB.reports],
+      };
+      const res = simulateReport(
+        { ...validPayload, value: `777777${scam_type.length}`, scam_type },
+        db
+      );
       expect(res.status).toBe(201);
     });
   });
