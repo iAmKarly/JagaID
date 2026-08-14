@@ -1,9 +1,5 @@
 name: CI
 
-defaults:
-  run:
-    working-directory: ${{ github.workspace }}
-
 on:
   push:
     branches: [main, develop]
