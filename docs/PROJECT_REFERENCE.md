@@ -437,9 +437,9 @@ npm run dev              Start dev server on :3000
 npm run build            Production build
 
 # Linting
-npm run lint             ESLint check
-npm run format           Prettier fix
-npm run format:check     Prettier check (used in CI)
+npx eslint .             
+npx prettier --write .   Prettier fix
+npx prettier --check .   Prettier check (used in CI)
 
 # Testing — unit and integration (no browser, no DB)
 npm test                 170 tests, runs instantly
