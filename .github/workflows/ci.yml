@@ -29,7 +29,7 @@ jobs:
         run: npx tsc --noEmit
 
       - name: Lint
-        run: npm run lint
+        run: next lint
 
       - name: Format check
         run: npm run format:check
