@@ -437,7 +437,7 @@ npm run dev              Start dev server on :3000
 npm run build            Production build
 
 # Linting
-npx eslint .             
+npx eslint .
 npx prettier --write .   Prettier fix
 npx prettier --check .   Prettier check (used in CI)
 

@@ -353,7 +353,11 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (tab === "dashboard") loadStats();
+    if (tab === "dashboard") {
+      setTimeout(() => {
+        loadStats();
+      }, 0);
+    }
   }, [tab, loadStats]);
 
   function switchTab(t: "lookup" | "report" | "dashboard") {
